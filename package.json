@@ -14,5 +14,6 @@
     "start": "node tools/serve.cjs",
     "test:colony": "node tools/colony-browser.cjs",
     "test:browser": "node tools/browser-smoke.cjs"
-  }
+  },
+  "license": "MIT"
 }

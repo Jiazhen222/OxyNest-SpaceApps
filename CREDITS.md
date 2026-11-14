@@ -22,3 +22,5 @@ Canva (https://www.canva.com/) and CapCut (https://www.capcut.com/) were used fo
 ## Licenses and NASA attribution
 
 The font license is preserved in game/fonts/OFL.txt. NASA references are listed in NASA_DATA.md and do not imply NASA endorsement. No NASA logo is required to play the game.
+
+Original project code and project-authored documentation are released under the root MIT License. Third-party fonts, referenced NASA resources and other third-party materials retain their applicable licenses and terms. Agency names, logos and trademarks are not covered by the project's MIT grant.

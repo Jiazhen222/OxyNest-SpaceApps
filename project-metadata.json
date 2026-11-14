@@ -27,5 +27,6 @@
     }
   ],
   "resources": "NASA_DATA.md",
-  "credits": "CREDITS.md"
+  "credits": "CREDITS.md",
+  "license": "MIT"
 }

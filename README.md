@@ -115,3 +115,7 @@ npm run test:browser
 ```
 
 Game source is in game/js/, layout in game/index.html and game/css/, and bilingual text in game/js/i18n.js. Tests and development tools are included for reproducibility. Static checks do not establish scientific accuracy or real-child usability.
+
+## License
+
+Original OxyNest code and project-authored documentation are available under the [MIT License](LICENSE). Bundled Noto Sans SC fonts retain their [SIL Open Font License 1.1](game/fonts/OFL.txt). Referenced NASA resources and other third-party materials retain their applicable terms; the MIT license does not relicense them or grant rights to agency names, logos or trademarks.
