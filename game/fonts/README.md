@@ -17,3 +17,7 @@ python tools/subset-font.py path/to/NotoSansSC-Regular.otf path/to/NotoSansSC-Bo
 ```
 
 A character that is missing still shows, in the computer's own Chinese font (for example a child's Chinese nickname).
+
+## Integrated gameplay update
+
+The subset was rebuilt on November 13 from the same Noto CJK SC sources for 854 characters. coverage.json records actual cmap characters and font hashes. The static check verifies that each font matches this record and covers the current interface text; regenerate both after changes. Full OTF sources and Python tooling remain in the owner workspace runtime folder and are not served by the game.

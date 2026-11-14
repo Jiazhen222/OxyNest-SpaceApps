@@ -1,63 +1,54 @@
-# OxyNest Space Apps
+# OxyNest
 
-**Build Life Beyond Earth.** Previously named Beyond Earth: Settler.
+**Build Life Beyond Earth.**
 
-This repository contains the initial OxyNest research datasets and B's unmodified Kids game delivery. Later integration and autonomous-management changes are not included.
+A desktop educational Moon base-building game designed for ages 5–12. The current version combines autonomous settlement management with optional guided missions. English and Chinese are supported. There is no background music, account, backend or player analytics service. Progress is stored in the current browser.
 
-**Research snapshot recorded:** November 4, 2026. **Publication:** November 14, 2026. The publication date is not the project start date. B's received November 13 game was added on November 14. Later modified gameplay remains outside this publication.
+## Play locally
 
-## Play B's received game
+Download and extract this repository, then open `game/index.html` in a desktop browser. Choose **Build my base** for autonomous management or **Guided missions** for the step-by-step campaign. These modes save separately. Use **Quit** to return to the menu.
 
-Download and extract the repository ZIP, then open `game/index.html` in a desktop browser. The received game runs offline with local assets. It uses HTML, CSS, JavaScript and inline SVG; there are no frameworks or runtime packages to install. This is the original mission-guided Kids version, including its received sound effects and recovery behavior.
-
-The game snapshot is preserved byte-for-byte except for an omitted local editor configuration. See [delivery notes](docs/GAME_DELIVERY.md) and [source hashes](docs/GAME_SOURCE_MANIFEST.json). This repository URL provides code and downloads; no live game website or GitHub Pages deployment has been enabled.
-
-Tools and AI assistance are acknowledged in [CREDITS.md](CREDITS.md) and `project-metadata.json`.
-
-## Research contents
-
-| Dataset | Research topic |
-| --- | --- |
-| `data/alarms.json` | Proposed alert metrics and game thresholds |
-| `data/consumption.json` | Crew consumption context and resource assumptions |
-| `data/destinations.json` | Moon and Mars reference content |
-| `data/failure_chains.json` | Proposed causal chains and game outcomes |
-| `data/modules.json` | Habitat and life-support module concepts |
-| `data/quiz.json` | Initial educational questions |
-| `data/recipes.json` | Proposed processing inputs and outputs |
-| `data/wheel.json` | Proposed event content and effects |
-| `data/reality_vs_game.json` | Distinctions between reference context and game assumptions |
-
-These are the earlier source datasets, not the versions later adapted for a game engine. Source-localized fields remain preserved. The public documentation is in English, and the optional projection tool generates English JSON without altering the supplied source files.
-
-`docs/SOURCE_LINKS.md` lists 29 distinct supplied reference links. `docs/SOURCE_MANIFEST.json` records hashes and the original local research revision. `docs/DATA_REVIEW.md` is the historical review accompanying that snapshot; its references to missing gameplay contracts describe the research stage, not the status of other project versions.
-
-`data.html` is a plain research inventory prepared for this publication. It contains links to the datasets, with no gameplay, scripts or scientific-value dashboard.
-
-## Run local checks
-
-Use Node.js 24 or later. No third-party npm packages are required.
+For development, use Node.js 24 or later. No npm packages are required:
 
 ```sh
 npm test
-npm run check:game
-node tools/check-data.js
-node tools/check-structure.cjs
-npm run prepare:data
+npm run build
+npm start
 ```
 
-The combined regression suite passes **15 tests**: nine research checks and six received-game checks. The game checks cover handoff hashes, language parameters, choice roles, age settings, reward ordering and local entry assets. These checks do not replace browser gameplay testing. The parsing/source-format stage reports **9/9 JSON files** and **65/65 NASA-domain-formatted source fields**. That is URL-format checking, not source-content verification.
+Open the localhost address printed by the server. Browser saves are specific to their origin; opening the file directly and using localhost can show different saves.
 
-The supplemental structure check intentionally remains **nonzero** for an unresolved initial reference: `chain_food_starvation_collapse` uses `food_days_left` without a declared metric contract. Accordingly, `npm run check:data` exits 1. No threshold or engine alias has been invented to make this historical snapshot appear fully integrated.
+## Build your settlement
 
-`npm run prepare:data` writes nine English projections under ignored `runtime/data/`. IDs, numerical parameters, source URLs and ordering are preserved. These generated files are not a game build.
+Gather rocks and ice, choose among eight facility types, and manage six building plots. Start production, collect finished supplies, use them for your crew or fulfil fictional supply orders. Move buildings, upgrade facilities and earn credits for expansion. Production uses short game timers and does not impose an offline resource penalty.
 
-## Research limits
+Establish your outpost by reaching level three, completing six deliveries and producing at least six packaged supplies. You may keep building afterward. Resource explanations and an optional Knowledge book support learning. Guided missions retain questions and decision-based events. See [how to play](docs/KIDS_HOW_TO_PLAY.md) and [settlement rules](docs/SETTLEMENT_MODE_2026-11-13.md).
 
-Supplied citations, classification labels and `last_verified` dates are source-author assertions that still require review. This publication does not verify scientific values, current source availability, NASA hardware performance, gameplay behavior or release eligibility.
+## Source layout
 
-Processing yields, rewards, construction costs, timing and event effects include game-design assumptions. Scientific context must be distinguished from those assumptions before using the data in a learning experience. See `docs/DATA_REVIEW.md` and `docs/VALIDATION_STATUS.md`.
+- `game/`: current integrated source, local fonts and content-checking tools.
+- `tests/`: game-state, progression, economy, publication-integrity and historical research tests.
+- `tools/`: local build/server, browser checks and research validators.
+- `data/`: the preserved initial nine-dataset research snapshot; these files are historical references and are not loaded by the current game. Current playable rules and learning text are in `game/js/`.
+- `docs/`: gameplay, source records, historical delivery notes and review limits.
+- `dist/`: ignored generated playable build.
 
-NASA references are provided for education. OxyNest is an independent student project and is not endorsed by NASA. No website deployment, collaborator invitation or final submission is included in this release.
+The original B delivery remains available in commit `e55dbbcdbb272dfb590db81d5eaf1924b44d2364`. `docs/GAME_SOURCE_MANIFEST.json` describes that historical delivery. `docs/CURRENT_GAME_MANIFEST.json` records the current source hashes. Later integration is explicitly a modification of B's delivery, not an unchanged original.
+
+## Validation and limitations
+
+The publication suite passes 32 Node tests, including eight economy tests. `npm run check:game` checks local text, references and font coverage; it does not verify scientific claims. Browser checks are available through `npm run test:colony` and `npm run test:browser`; see [current publication notes](docs/CURRENT_RELEASE.md) for results and scope.
+
+Fourteen learning cards contain team-supplied NASA references; two retain fact placeholders. Scientific wording and remaining placeholders require review. Costs, yields, meters, rewards and timers are simplified game rules, not validated lunar equipment performance. Real-child usability and retention have not been established. Mobile-specific optimization remains outside this release.
+
+The historical research structure check still reports an undeclared `food_days_left` metric, so `npm run check:data` exits nonzero. This historical dataset issue is separate from the current game build. The source-domain checks do not verify source content or scientific values. See `docs/DATA_REVIEW.md` and `docs/VALIDATION_STATUS.md`.
+
+## Credits and publication
+
+See [CREDITS.md](CREDITS.md) and `project-metadata.json` for tools and AI assistance. NASA resources provide educational context. OxyNest is an independent student project and is not endorsed by NASA.
+
+Research preparation was recorded on November 4, 2026; the original B Kids handoff was received November 13; public updates began November 14. Publication dates are not claims about when development began.
 
 Repository: https://github.com/Jiazhen222/OxyNest-SpaceApps
+
+No GitHub Pages deployment or final challenge submission is included. There is currently no live game URL recorded for this repository.

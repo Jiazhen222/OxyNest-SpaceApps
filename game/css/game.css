@@ -419,3 +419,69 @@ button, input { font: inherit; color: inherit; }
 #hud .stat.meter { width: 120px; flex: none; }
 #hud .stat.meter.wide { width: 156px; }
 #hud .stat.count { width: 122px; flex: none; }
+
+/* Persistent local identity and a readable exit label. */
+#playerName { max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--navy); background:var(--cream); padding:8px 12px; border-radius:14px; border:2px solid var(--navy); font-size:14px; }
+#homeBtn { width:auto; padding:0 10px; display:flex; align-items:center; gap:5px; font-size:14px; }
+#storageNote { position:fixed; bottom:4px; left:12px; z-index:100; padding:8px 14px; margin:0; background:var(--cream); color:var(--navy); border:2px solid var(--navy); border-radius:10px; font-size:14px; }
+@media(prefers-reduced-motion:reduce){ *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;} }
+
+/* Keep the full stats row separate from the player controls. */
+#hud { right:8px; }
+#corner { top:80px; }
+.on-start #corner { top:10px; }
+#playerName { max-width:100px; }
+
+/* Resource explanations and gameplay progression. */
+.stat {position:relative;}
+.stat-help {position:absolute;right:3px;top:2px;width:20px;height:20px;min-height:0;padding:0;border:1px solid var(--navy);border-radius:50%;background:var(--cream);color:var(--navy);font-size:14px;font-weight:700;cursor:pointer;}
+#hud .stat .lbl {padding-right:9px;}
+#missionCard {position:absolute;left:12px;top:180px;width:240px;padding:12px 14px;z-index:35;font-size:16px;}
+#missionCard p {font-size:14px;line-height:1.4;margin:7px 0;}
+#missionCard progress {width:100%;accent-color:var(--btn);height:10px;}
+#missionCard small {font-size:14px;}
+#explainPanel {position:absolute;inset:0;z-index:100;background:rgba(5,9,28,.55);border:0;border-radius:0;display:grid;place-items:center;}
+.explain-card {width:620px;padding:25px;font-size:18px;line-height:1.5;}
+.explain-card h2 {margin:0 0 16px;}
+.explain-card p {margin:6px 0 18px;}
+.tool-grid {display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px;}
+.tool-card {border:2px solid var(--navy);border-radius:16px;padding:16px;width:250px;text-align:center;background:#fff;}
+.tool-card>.ico {width:64px;height:64px;}
+.tool-card h3 {font-size:20px;margin:10px 0 8px;}
+.tool-card p {font-size:16px;min-height:54px;line-height:1.4;}
+.tool-card .btn {font-size:17px;width:100%;}
+#mineProgress {position:absolute;left:14px;bottom:90px;width:245px;padding:12px;font-size:16px;z-index:38;display:grid;gap:8px;}
+#mineProgress progress {width:100%;height:12px;accent-color:var(--btn);}
+#btnTools .ico {width:30px;height:30px;}
+
+#stage[data-site="1"] #pile .spot path {fill:#b8a5bc;}
+#stage[data-site="2"] #pile .spot path {fill:#89b6cb;}
+
+#mineProgress { top:335px; bottom:auto; }
+
+/* Autonomous settlement controls and production feedback. */
+.play-styles {position:absolute;top:206px;left:50%;transform:translateX(-50%);display:flex;gap:12px;}
+.play-styles .btn {min-height:42px;font-size:18px;padding:6px 18px;}
+.on-start #bubble {display:none;}
+.warehouse {display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0;}
+.warehouse>span {padding:10px;border:2px solid var(--navy);border-radius:10px;background:#fff;font-size:16px;}
+.warehouse .btn {display:block;min-height:32px;margin-top:8px;font-size:14px;}
+.order-grid {display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.order-card,.recipe-card {padding:12px;border:2px solid var(--navy);border-radius:12px;background:#fff;}
+.order-card h3,.recipe-card h3 {font-size:19px;margin:0 0 8px;}
+.order-card p,.recipe-card p {font-size:16px;line-height:1.4;}
+.order-card small,.recipe-card small {display:block;margin:8px 0 0;font-size:14px;color:var(--ink2);}
+.order-card .btn {font-size:16px;min-height:42px;}
+.industry-layout {display:grid;grid-template-columns:200px 500px;gap:20px;align-items:start;}
+.industry-layout>.bsvg {width:200px;height:230px;}
+.recipe-card {margin:10px 0;}
+#productionMarkers {position:absolute;inset:0;pointer-events:none;z-index:42;}
+.job-marker {position:absolute;top:390px;width:110px;min-height:42px;pointer-events:auto;border:2px solid var(--navy);border-radius:14px;background:var(--cream);color:var(--navy);font:700 15px var(--font);cursor:pointer;}
+.job-marker.ready {background:var(--btn);box-shadow:0 4px 0 var(--navy);}
+#missionCard .btn {min-height:34px;padding:6px 9px;font-size:14px;margin-top:8px;}
+
+.order-card p span,.recipe-card p span {display:inline-flex;align-items:center;gap:4px;margin-right:5px;}
+.order-card p .ico,.recipe-card p .ico {width:25px;height:25px;flex:none;}
+
+.hq-tools {display:flex;align-items:center;gap:15px;margin:12px 0 16px;}
+.hq-tools small {font-size:14px;max-width:40ch;}

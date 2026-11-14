@@ -15,9 +15,9 @@ for (const name of ['content', 'i18n']) {
 const C = box.window.OX_CONTENT;
 const I = box.window.OX_I18N;
 
-test('published game files retain the received handoff bytes', () => {
-  const manifest = JSON.parse(read('docs/GAME_SOURCE_MANIFEST.json'));
-  assert.equal(manifest.files.length, 18);
+test('published game files match the current integration manifest', () => {
+  const manifest = JSON.parse(read('docs/CURRENT_GAME_MANIFEST.json'));
+  assert.ok(manifest.files.length >= 18);
   for (const file of manifest.files) {
     const bytes = fs.readFileSync(path.join(root, file.path));
     assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), file.sha256, file.path);

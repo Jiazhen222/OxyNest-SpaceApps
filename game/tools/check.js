@@ -156,6 +156,20 @@ if (fs.existsSync(path.join(fontDir, 'subset-chars.txt'))) {
   if (fontMissing.length) err(`Chinese text uses characters not in the bundled font: ${fontMissing.join('')} (see fonts/README.md to rebuild it)`);
 }
 
+// Validate the recorded cmap coverage against the actual bundled font hashes.
+const coveragePath=path.join(fontDir,'coverage.json');
+if(!fs.existsSync(coveragePath))err('fonts/coverage.json is missing');
+else {
+  const coverage=JSON.parse(fs.readFileSync(coveragePath,'utf8'));
+  for(const name of FONT_FILES){
+    const row=coverage.find(x=>x.file===name),file=path.join(fontDir,name);
+    if(!row||!fs.existsSync(file)){err('Missing font coverage '+name);continue;}
+    if(require('crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex')!==row.sha256)err('Font changed without rebuilding coverage: '+name);
+    const have=new Set(Array.from(row.characters));
+    if(Array.from(require('./font-chars.js').fontChars()).some(ch=>!have.has(ch)))err('Actual font cmap does not cover all interface text: '+name);
+  }
+}
 console.log(`\n${Object.keys(I.en).length} text keys in each language; ${Object.keys(C.CHOICES).length} choices; ${Object.keys(C.CARDS).length} cards (${sourced} with a NASA source from the team data, ${placeholders} showing [Fact to be added]).`);
 console.log(`${errors} errors, ${warnings} warnings`);
+console.log('Static checks do not verify source content, scientific accuracy, child usability or release readiness.');
 process.exit(errors ? 1 : 0);

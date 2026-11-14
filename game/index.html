@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
+<p id="storageNote" role="status" data-t="storage.notice" hidden></p>
 <div id="stage" class="on-start">
   <div id="sceneWrap"></div>
 
@@ -27,9 +28,9 @@
   </div>
 
   <!-- top right on every screen -->
-  <div id="corner">
+  <div id="corner"><span id="playerName" hidden></span>
     <button id="homeBtn" class="iconbtn" type="button"></button>
-    <button id="muteBtn" class="iconbtn" type="button"></button>
+
     <div class="lang" role="group">
       <button type="button" data-lang="en">EN</button><span class="sep" aria-hidden="true">|</span><button type="button" data-lang="zh" lang="zh-Hans">中文</button>
     </div>
@@ -38,6 +39,7 @@
   <!-- start screen -->
   <div id="start">
     <div class="title"><span class="t1" data-t="app.name"></span><span class="t2" data-t="app.sub"></span></div>
+    <div class="play-styles"><button class="btn" data-play-style="settlement" data-t="colony.mode"></button><button class="btn secondary" data-play-style="guided" data-t="colony.story"></button></div>
     <div id="levelCards"></div>
     <div class="nick card">
       <label for="nickInput" class="nlabel" data-t="start.nick"></label>
@@ -62,7 +64,13 @@
   <div id="warn" hidden></div>
 
   <!-- bottom buttons -->
+  <aside id="missionCard" class="card" aria-live="polite"></aside>
+  <div id="mineProgress" class="card" hidden></div>
+  <section id="explainPanel" class="card" role="dialog" aria-label="Help" hidden></section>
+  <div id="productionMarkers" hidden></div>
   <div id="actions">
+    <button id="btnOrders" class="btn abtn" hidden></button>
+    <button id="btnTools" class="btn abtn" type="button" hidden></button>
     <button id="btnGo" class="btn abtn" type="button" hidden></button>
     <button id="btnIce" class="btn abtn" type="button" hidden></button>
     <button id="btnProc" class="btn abtn" type="button" hidden></button>
@@ -82,7 +90,9 @@
 <script src="js/i18n.js"></script>
 <script src="js/content.js"></script>
 <script src="js/art.js"></script>
-<script src="js/sfx.js"></script>
+<script src="js/progression.js"></script>
+<script src="js/settlement.js"></script>
+<script src="js/state.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>

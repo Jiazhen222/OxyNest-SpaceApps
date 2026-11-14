@@ -1,8 +1,8 @@
 {
-  "name": "oxynest-research",
+  "name": "oxynest",
   "version": "0.1.0",
   "private": true,
-  "description": "OxyNest research, received B game and incremental validation tools",
+  "description": "OxyNest Moon settlement game and research references",
   "engines": {
     "node": ">=24"
   },
@@ -11,6 +11,10 @@
     "check:data": "node tools/check-data.js && node tools/check-structure.cjs",
     "prepare:data": "node tools/prepare-english-data.cjs",
     "test:game": "node --test tests/game-handoff.test.cjs",
-    "check:game": "node game/tools/check.js && npm run test:game"
+    "check:game": "node game/tools/check.js && npm run test:game",
+    "build": "npm run check:game && node tools/build.cjs",
+    "start": "node tools/serve.cjs",
+    "test:colony": "node tools/colony-browser.cjs",
+    "test:browser": "node tools/browser-smoke.cjs"
   }
 }

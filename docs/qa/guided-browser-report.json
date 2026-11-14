@@ -1,0 +1,46 @@
+{
+  "basePath": "/OxyNest/",
+  "checks": [
+    "Three age levels; sound off by default; language switches and persists",
+    "Explorer starts with one mining target, nickname text and no countdown",
+    "Resource explanations and the question-mark help are visible before mining",
+    "Help works over a live choice without dismissing the question",
+    "Wrong choice reduces survival and explains retry without advancing",
+    "Leaving after a rewarded answer preserves its card and prevents duplicate rewards",
+    "Exit during construction keeps one paid building without losing materials twice",
+    "Explorer first mission reaches its learning summary through real mining, dust, battery and night choices",
+    "Reloading a completed summary does not grant a duplicate badge",
+    "All four Explorer missions complete, including processing, food, shelter, meteorites and the final building",
+    "The fourth mission has an explicit finish action that records campaign success and returns to the menu",
+    "Zero survival shows failure; Quit returns to menu; Try again preserves buildings, resources and learned cards",
+    "Engineer and Commander initialize with their own saved level and age settings",
+    "Seeded free-play fixture buys a drill, selects an unlocked ridge, breaks a tougher rock in two taps and banks its five-rock yield",
+    "Desktop viewport bounds and offline Chinese font loading pass",
+    "Malformed saved mission safely falls back to a fresh game"
+  ],
+  "errors": [],
+  "failedRequests": [],
+  "externalRequests": [],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Edg/157.0.4341.46",
+    "revision": "@a0c6bd61d7884b3c402a34c67d05100107a9e5e4",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+    "jsVersion": "15.7.11.4"
+  },
+  "choicesSeen": [
+    "dust",
+    "suitAir",
+    "night",
+    "ice",
+    "leak",
+    "rocksAir",
+    "iceWater",
+    "plants",
+    "storm",
+    "meteor",
+    "oxygen",
+    "solar"
+  ],
+  "status": "passed"
+}

@@ -2,7 +2,9 @@
    Saves only to localStorage. Every outcome is fixed (no random numbers anywhere). */
 (function () {
   'use strict';
-  const I = window.OX_I18N, C = window.OX_CONTENT, ART = window.OX_ART, SFX = window.OX_SFX;
+  const I = window.OX_I18N, C = window.OX_CONTENT, ART = window.OX_ART;
+  const SFX = Object.freeze({play(){},unlock(){},setMuted(){},isMuted:()=>true});
+  const P = window.OX_PROGRESS, SO=window.OX_SETTLEMENT;
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -24,9 +26,9 @@
   // ------------------------------------------------------------------ saved preferences and games
   const KEY = 'oxynest-kids-v1';
   let store = {};
-  try { store = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { store = {}; }
+  try { store = window.OX_STATE.readStore(localStorage.getItem(KEY) || '{}'); } catch (e) { store = {}; }
   if (!store.saves || typeof store.saves !== 'object') store.saves = {};
-  function persist() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { /* private window: play without saving */ } }
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(store)); $('#storageNote').hidden = true; } catch (e) { $('#storageNote').hidden = false; } }
 
   // ------------------------------------------------------------------ text
   let lang = store.lang === 'zh' ? 'zh' : 'en';
@@ -81,11 +83,11 @@
       m: { survival: s.survival, air: s.air, power: s.power, water: s.water, food: s.food, rad: s.rad },
       rocks: s.rocks, ice: s.ice, stars: s.stars,
       slots: [null, null, null, null, null, null],
-      book: [], done: {}, log: null, snap: null, freeIdx: 0,
-      flags: { mine: false }, runs: { dig: 0, mine: 0 }, badges: [], patched: false
+      book: [], done: {}, log: null, snap: null, freeIdx: 0, completedChoices: [], eventStarts: [], eventEnds: [],
+      flags: { mine: false }, runs: { dig: 0, mine: 0 }, badges: [], patched: false, expedition: P.fresh()
     };
   }
-  function saveGame() { if (G.st && G.level) { store.saves[G.level] = G.st; persist(); } }
+  function saveGame() { if (G.st && G.level) { const bucket=isColony()?(store.colonies||(store.colonies={})):store.saves;bucket[G.level]=G.st;persist(); } }
 
   // ------------------------------------------------------------------ async helpers (every flow stops cleanly on restart)
   const waits = {};
@@ -228,6 +230,7 @@
       } else {
         s.innerHTML = `${ART.icon(k === 'rocks' ? 'rock' : 'star')}<div class="col"><span class="lbl">${esc(t('hud.' + k))}</span><span class="cnt"></span></div>`;
       }
+      const help=document.createElement('button');help.className='stat-help';help.type='button';help.textContent='!';help.dataset.explain=k;help.setAttribute('aria-label',t('play.info',{name:t('hud.'+k)}));s.append(help);
     });
     updateHud();
   }
@@ -370,6 +373,7 @@
     return null;
   }
   function buildState(type) {
+    if(isColony())return 'ok';
     if (hasBuilding(type)) return 'built';
     if (isFree()) return 'ok';
     const g = goalType();
@@ -381,6 +385,9 @@
 
   function computeHint() {
     if (G.screen === 'start') return { icon: 'star', key: 'hint.pickLevel', target: '#levelCards .lvwrap:nth-child(1) .level-card' };
+    if(isColony()&&['orders','industry','colonyWin'].includes(G.modal))return {icon:'dome',key:'colony.choose',target:null};
+    if (G.modal === 'workshop') return {icon:'gear',key:'play.tools',target:'#playClose'};
+    if (G.modal === 'minemap') return {icon:'pick',key:'play.choose',target:'#zone-0'};
     if (G.modal === 'fail') return { icon: 'refresh', key: 'hint.failed', target: '#failTry' };
     if (G.modal === 'card') return { icon: 'book', key: G.cardCtx && G.cardCtx.fromBook ? 'hint.goBackPage' : 'hint.card', target: '#cardOk' };
     if (G.modal === 'choice') {
@@ -398,6 +405,7 @@
     return baseHint();
   }
   function baseHint() {
+    if(isColony())return {icon:'dome',key:G.moveSlot>=0?'colony.pickPlot':'colony.choose',target:null};
     const step = currentStep(), st = G.st;
     if (!step) return { icon: 'play', key: 'hint.working', target: null };
     switch (step.type) {
@@ -485,6 +493,7 @@
   }
 
   function refreshHint() {
+    renderMission();
     const h = computeHint();
     G.hint = h;
     const sig = h ? `${h.icon}|${t(h.key, h.vars)}` : '';
@@ -609,6 +618,15 @@
   function onModalAct(a, v) {
     SFX.play('tap');
     switch (a) {
+      case 'colonyStart': if(isColony()&&SO.start(G.st,G.infoSlot,v)){saveGame();updateHud();renderIndustry();renderMission();} return;
+      case 'colonyCollect': if(isColony())collectColony(v);return;
+      case 'colonyDeliver': if(isColony()){const [id,serial]=v.split(':');if(SO.deliver(G.st,id,Number(serial))){saveGame();updateHud();renderOrders();renderMission();checkColonyWin();}}return;
+      case 'colonyExpand': if(isColony()&&SO.upgrade(G.st)){saveGame();renderOrders();renderMission();checkColonyWin();}return;
+      case 'colonyUse': if(isColony()&&SO.use(G.st,v)){saveGame();updateHud();renderOrders();}return;
+      case 'colonyMove': G.moveSlot=G.infoSlot;closeModal();refreshHint();return;
+      case 'colonyLeave': closeModal();goStart();return;
+      case 'tool': if(P.buy(G.st,v)){saveGame();updateHud();renderWorkshop();} return;
+      case 'zone': if(P.unlocked(G.st,Number(v))){P.ensure(G.st).zone=Number(v);saveGame();closeModal();startDig('dig');} return;
       case 'pick': case 'retry': case 'cardOk': case 'sumNext': act(a, v); return;
       case 'close': closeModal(); return;
       case 'build': onBuildPick(v); return;
@@ -636,17 +654,21 @@
     $('#actions').hidden = !baseOn;
     if (game) {
       const st = G.st;
+      $('#btnOrders').hidden=!isColony();$('#btnOrders').textContent=t('colony.hub');
+      $('#btnTools').hidden = !isColony()&&st.runs.dig===0;
+      $('#btnTools').innerHTML=ART.icon('gear')+'<span>'+esc(t('play.tools'))+'</span>';
       $('#btnGo').hidden = false;
       $('#btnGo').innerHTML = `${ART.icon('helmet')}<span>${esc(t('btn.goOutside'))}</span>`;
       $('#btnIce').hidden = !st.flags.mine;
       $('#btnIce').innerHTML = `${ART.icon('ice')}<span>${esc(t('btn.mineIce'))}</span>`;
-      $('#btnProc').hidden = !hasBuilding('processor');
+      $('#btnProc').hidden = isColony()||!hasBuilding('processor');
       $('#btnProc').innerHTML = `${ART.icon('gear')}<span>${esc(t('btn.process'))}</span><span class="badgecount" title="${esc(t('hud.ice'))}">${ART.icon('ice')}${countVis(st.ice, 'ice')}</span>`;
       $('#btnBook').hidden = st.book.length === 0;
       $('#btnBook').innerHTML = `${ART.icon('book')}<span>${esc(t('btn.book'))}</span>`;
     }
     $('#digbar').hidden = !(game && G.mode === 'dig' && G.dig && !G.modal);
     if (G.dig) renderDigbar();
+    renderMineProgress();
   }
   function renderDigbar() {
     const D = G.dig;
@@ -659,7 +681,8 @@
     back.innerHTML = `${ART.icon('dome')}<span>${esc(t('btn.goBack'))}</span>`;
     back.classList.toggle('secondary', !D.low);
   }
-  $('#btnGo').addEventListener('click', () => { SFX.play('tap'); startDig('dig'); });
+  $('#btnGo').addEventListener('click', () => { if(G.st.runs.dig===0)startDig('dig');else openModal('minemap',renderMineMap); });
+  $('#btnTools').addEventListener('click',()=>{if(G.mode==='base'&&!G.modal)openModal('workshop',renderWorkshop);});
   $('#btnIce').addEventListener('click', () => { SFX.play('tap'); startDig('mine'); });
   $('#btnProc').addEventListener('click', () => { SFX.play('tap'); onProcessBtn(); });
   $('#btnBook').addEventListener('click', () => { SFX.play('tap'); openBook(); });
@@ -668,14 +691,10 @@
 
   // ------------------------------------------------------------------ top corner: home, sound, language
   function renderCorner() {
-    const m = SFX.isMuted();
-    const mb = $('#muteBtn');
-    mb.innerHTML = ART.icon(m ? 'speakerOff' : 'speaker');
-    mb.setAttribute('aria-label', t(m ? 'ui.soundOn' : 'ui.soundOff'));
-    mb.title = t(m ? 'ui.soundOn' : 'ui.soundOff');
-    mb.setAttribute('aria-pressed', m ? 'true' : 'false');
     const hb = $('#homeBtn');
-    hb.innerHTML = ART.icon('home');
+    hb.innerHTML = ART.icon('home') + '<span>' + esc(t('btn.quit')) + '</span>';
+    $('#playerName').textContent = store.nick || '';
+    $('#playerName').hidden = !store.nick;
     hb.setAttribute('aria-label', t('ui.home')); hb.title = t('ui.home');
     const help = $('#helpBtn');
     help.innerHTML = ART.icon('question');
@@ -683,12 +702,7 @@
     $$('.lang button').forEach(b => { b.classList.toggle('on', b.dataset.lang === lang); b.setAttribute('aria-pressed', b.dataset.lang === lang ? 'true' : 'false'); });
     $('.lang').setAttribute('aria-label', t('ui.lang'));
   }
-  $('#muteBtn').addEventListener('click', () => {
-    const m = !SFX.isMuted();
-    SFX.setMuted(m); store.muted = m; persist(); renderCorner();
-    if (!m) SFX.play('tap');
-  });
-  $('#helpBtn').addEventListener('click', () => pointAgain(true));
+  $('#helpBtn').addEventListener('click', () => showExplanation());
   $('#homeBtn').addEventListener('click', () => { SFX.play('tap'); goStart(); });
   $$('.lang button').forEach(b => b.addEventListener('click', () => { SFX.play('tap'); setLang(b.dataset.lang); }));
 
@@ -715,11 +729,12 @@
 
   // ------------------------------------------------------------------ start screen
   function renderStart() {
+    $$('[data-play-style]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.playStyle===(store.playStyle||'settlement')));b.classList.toggle('secondary',b.dataset.playStyle!==(store.playStyle||'settlement'));});
     const wrap = $('#levelCards');
     wrap.innerHTML = C.LEVEL_ORDER.map(lv => {
-      const s = store.saves[lv];
+      const s = saveBucket()[lv];
       const started = s && s.started;
-      const prog = started ? (s.session >= C.SESSIONS.length ? t('start.free') : t('start.mission', { n: s.session + 1 })) : '';
+      const prog = s?.settlement ? t('colony.goal',{n:s.settlement.level}) : s?.campaignComplete ? t('play.complete') : started ? (s.session >= C.SESSIONS.length ? t('start.free') : t('start.mission', { n: s.session + 1 })) : '';
       const confirm = G.startNew === lv;
       return `<div class="lvwrap" style="display:flex;flex-direction:column;align-items:center;gap:6px">
         <button class="level-card" type="button" data-level="${lv}">
@@ -738,7 +753,7 @@
     $$('.newg', wrap).forEach(b => b.addEventListener('click', () => {
       SFX.play('tap');
       const lv = b.dataset.new;
-      if (G.startNew === lv) { delete store.saves[lv]; persist(); G.startNew = null; }
+      if (G.startNew === lv) { delete saveBucket()[lv]; persist(); G.startNew = null; }
       else G.startNew = lv;
       renderStart();
     }));
@@ -758,7 +773,9 @@
 
   function goStart() {
     if (G.st) saveGame();
+    G.moveSlot=-1;
     G.run++; clearWaits(); stopCountdown(); stopDigTimer();
+    closeExplanation();
     G.dig = null; G.choice = null; G.failed = false; G.mood = null;
     if (G.modal) closeModal();
     hideWarn();
@@ -771,8 +788,8 @@
   }
 
   // ------------------------------------------------------------------ sessions and steps
-  function sessionDef() { return G.st ? C.SESSIONS[G.st.session] || null : null; }
-  function isFree() { return !!G.st && G.st.session >= C.SESSIONS.length; }
+  function sessionDef() { if(isColony())return null;return G.st ? C.SESSIONS[G.st.session] || null : null; }
+  function isFree() { if(isColony())return true;return !!G.st && G.st.session >= C.SESSIONS.length; }
   function currentStep() {
     const s = sessionDef();
     if (!s) return isFree() ? { type: 'free' } : null;
@@ -781,11 +798,15 @@
 
   function startGame(level) {
     G.level = level; G.cfg = C.LEVELS[level];
-    const saved = store.saves[level];
+    const saved = saveBucket()[level];
     G.st = saved && saved.v === 1 && saved.m ? saved : newState();
+    if(store.playStyle!=='guided'){if(!saved){G.st.rocks=16;G.st.settlement=SO.fresh();}SO.ensure(G.st);G.st.flags.mine=true;}
+    P.ensure(G.st);
     G.screen = 'game';
+    renderCorner();
     stage.classList.remove('on-start');
     G.run++; clearWaits();
+    G.moveSlot=-1;
     G.mood = null; G.mode = 'base';
     resetSceneFx();
     renderHudStatic(); renderSlots(); renderActions(); renderMascot();
@@ -793,16 +814,17 @@
     else {
       const s = sessionDef();
       say(s ? s.say : 'say.free', null, 5000);   // remind the child what this mission is about
-      enterStep();
+      if (!checkFail()) enterStep();
     }
   }
   function beginSession() {
     const st = G.st;
+    if(isColony()){st.started=true;st.log=st.log||{cards:[],stars:0,max:0};saveGame();enterStep();return;}
     st.started = true; st.step = 0;
     st.log = { cards: [], stars: 0, max: 0 };
     if (st.session >= 1) st.flags.mine = true;
     st.snap = null;
-    st.snap = clone(st);
+    st.completedChoices = []; st.eventStarts = []; st.eventEnds = [];
     saveGame();
     const s = sessionDef();
     say(s ? s.say : 'say.free', null, 6500);
@@ -822,6 +844,7 @@
     enterStep();
   }
   function onActionDone(kind, info) {
+    if(isColony()){G.mode='base';renderActions();refreshHint();saveGame();return;}
     const step = currentStep();
     if (step) {
       if (step.type === 'dig' && kind === 'dig') { completeStep(); return; }
@@ -897,9 +920,11 @@
     if (G.screen !== 'game' || G.mode !== 'base' || G.modal) return;
     if (kind === 'mine' && !G.st.flags.mine) return;
     const st = G.st;
+    const tool=P.stats(st);
+    stage.dataset.site=String(kind==='dig'?tool.zone:0);
     G.mode = 'busy'; G.busyKey = 'hint.walking'; G.busyIcon = 'helmet';
     renderActions(); refreshHint();
-    const D = G.dig = { kind, i: 0, prog: 0, bag: 0, o2: 1, dust: false, low: false, lowDone: false, ended: null, paused: true, walking: true, first: st.runs[kind] === 0, run: G.run, slowSaid: 0 };
+    const D = G.dig = { kind, zone:kind==='dig'?tool.zone:0, capacity:tool.capacity, strength:tool.strength, drain:tool.drain, i: 0, prog: 0, bag: 0, o2: 1, dust: false, low: false, lowDone: false, ended: null, paused: true, walking: true, first: st.runs[kind] === 0, run: G.run, slowSaid: 0 };
     st.runs[kind]++;
     resetSpots();
     updateO2(); showO2(true);
@@ -913,7 +938,7 @@
         setFacing(-1);
       } else {
         await walkTo(CRATER_EDGE.x, CRATER_EDGE.y);
-        if (!st.done.ice) await runChoice('ice', {});
+        if (!st.done.ice&&!isColony()) await runChoice('ice', {});
         lampOn();
         D.paused = false;
         await walkTo(ICE_STAND[0].x, ICE_STAND[0].y);
@@ -934,8 +959,8 @@
   function digTick(run) {
     const D = G.dig;
     if (run !== G.run || !D || D.ended) { if (run !== G.run) stopDigTimer(); return; }
-    if (D.paused || G.modal) return;
-    D.o2 -= G.cfg.dig.drain * 0.1;
+    if (document.hidden || !$('#explainPanel').hidden || D.paused || G.modal) return;
+    D.o2 -= G.cfg.dig.drain * 0.1 * D.drain * (1+D.zone*.2);
     updateO2();
     checkO2();
   }
@@ -945,7 +970,7 @@
     if (D.o2 <= 0) { D.o2 = 0; updateO2(); say('say.noAir', null, 4000); flow(() => endDig('noAir')); return; }
     if (D.o2 <= 0.3 && !D.lowDone) {
       D.lowDone = true;
-      if (!G.st.done.suitAir) {
+      if (!G.st.done.suitAir&&!isColony()) {
         D.paused = true;
         flow(async () => {
           await runChoice('suitAir', {});
@@ -961,31 +986,38 @@
   }
   function onDigTap() {
     const D = G.dig;
-    if (G.mode !== 'dig' || !D || D.paused || D.walking || D.ended || G.modal) return;
+    if (G.mode !== 'dig' || !$('#explainPanel').hidden || !D || D.paused || D.walking || D.ended || G.modal) return;
     const cfg = G.cfg.dig;
-    D.prog += D.dust ? 0.5 : 1;
-    D.o2 -= cfg.tapCost;
+    D.prog += D.strength * (D.dust ? .5 : 1);
+    D.o2 -= cfg.tapCost * D.drain * (1+D.zone*.2);
     astro.classList.remove('swing'); void astro.getBBox(); astro.classList.add('swing');
     SFX.play(D.kind === 'dig' ? 'dig' : 'ice');
     if (D.dust && Date.now() - D.slowSaid > 3500) { D.slowSaid = Date.now(); say('say.slow', null, 2500); }
     updateO2();
-    if (D.prog >= cfg.taps) { flow(spotDone); return; }
+    renderMineProgress();
+    if (D.prog >= cfg.taps + D.zone) { flow(spotDone); return; }
     checkO2();
   }
   async function spotDone() {
     const D = G.dig;
     if (!D || D.ended) return;
     const dig = D.kind === 'dig';
-    const gain = dig ? C.SPOT_ROCKS[D.i] : C.ICE_PER_CHUNK;
+    const gain = Math.min(D.capacity-D.bag,dig ? C.SPOT_ROCKS[D.i]+D.zone+P.ensure(G.st).tools.drill : C.ICE_PER_CHUNK);
     D.bag += gain;
     const el = dig ? $('#spot' + D.i) : $('#icec' + D.i);
     el.classList.remove('active'); el.classList.add('done');
     SFX.play(dig ? 'rock' : 'ice');
     renderDigbar();
     D.i++; D.prog = 0; D.dust = false;
+    renderMineProgress();
+    if(D.bag>=D.capacity){checkO2();if(D.ended||D.paused)return;await endDig('full');return;}
     show('#dustCloud', false);
     const list = dig ? SPOTS : ICES;
-    if (D.i >= list.length) { say('say.noSpots', null, 3500); await endDig('spots'); return; }
+    if (D.i >= list.length) {
+      checkO2();
+      if (D.ended || D.paused) return;
+      say('say.noSpots', null, 3500); await endDig('spots'); return;
+    }
     checkO2();
     if (D.ended || D.paused) return;
     D.walking = true;
@@ -1012,7 +1044,7 @@
       dc.setAttribute('transform', `translate(${p.x},${p.y - 18})`);
       dc.classList.remove('blowing', 'big');
       dc.classList.remove('hide');
-      if (!G.st.done.dust && !D.paused) {
+      if (!G.st.done.dust && !D.paused&&!isColony()) {
         D.paused = true;
         flow(async () => {
           await runChoice('dust', {});
@@ -1028,6 +1060,7 @@
     const D = G.dig;
     if (!D || !D.dust) return;
     D.dust = false;
+    if(isColony()){learnByDoing('dust');saveGame();}
     const dc = $('#dustCloud');
     dc.classList.remove('big'); dc.classList.add('blowing');
     SFX.play('blow');
@@ -1052,8 +1085,9 @@
     astro.classList.remove('lamp');
     resetSpots();
     const st = G.st;
-    if (D.kind === 'dig') { st.rocks += D.bag; if (D.bag) showDelta('rocks', D.bag); }
-    else { st.ice += D.bag; }
+    P.bank(st,D.kind,D.bag,D.zone);
+    if(isColony()&&D.bag){learnByDoing(D.kind==='mine'?'ice':'suitAir');SO.upkeep(st,2);updateHud();saveGame();if(checkFail())return;}
+    if(D.kind==='dig'&&D.bag)showDelta('rocks',D.bag);
     if (D.bag) SFX.play('pop');
     updateHud();
     say(D.bag ? (D.kind === 'dig' ? 'say.home' : 'say.homeIce') : 'say.homeEmpty', { n: D.bag }, 4000);
@@ -1072,6 +1106,7 @@
     pointAgain(false, true);
   }
   function onSlot(i) {
+    if(isColony()&&G.moveSlot>=0&&!G.modal&&G.mode==='base'){if(SO.move(G.st,G.moveSlot,i)){G.moveSlot=-1;saveGame();renderSlots();refreshHint();}return;}
     if (G.screen !== 'game' || G.modal || G.mode !== 'base') return;
     SFX.play('tap');
     if (G.st.slots[i]) { openInfo(i); return; }
@@ -1180,14 +1215,15 @@
     G.mode = 'busy'; G.busyKey = 'hint.building'; G.busyIcon = 'hammer';
     renderActions(); refreshHint();
     st.rocks -= b.cost;
+    st.slots[slot] = { type, lv: 1 };
+    applyEffects(b.bonus);
+    saveGame();
     showDelta('rocks', -b.cost);
     updateHud();
     SFX.play('build');
     await ringCountdown(slot, b.time);
-    st.slots[slot] = { type, lv: 1 };
     renderSlot(slot, true);
     SFX.play('pop');
-    applyEffects(b.bonus);
     setMascot('cheer', 2200);
     say('say.built', { b: { k: `b.${type}.one` } }, 3500);
     saveGame();
@@ -1196,7 +1232,7 @@
   }
 
   // ------------------------------------------------------------------ building info, upgrade, move out
-  function openInfo(slot) { G.infoSlot = slot; G.infoConfirm = false; G.infoNeed = false; openModal('info', renderInfo); }
+  function openInfo(slot) { G.infoSlot = slot; G.infoConfirm = false; G.infoNeed = false; openModal(isColony()?'industry':'info',isColony()?renderIndustry:renderInfo); }
   function upgradeText(type) {
     if (type === 'processor') return t('info.upProc');
     const up = C.BUILDINGS[type].up, k = Object.keys(up)[0];
@@ -1204,6 +1240,7 @@
     return t(up[k] < 0 ? 'info.upLess' : 'info.upMore', { m: t('hud.' + k) });
   }
   function renderInfo() {
+    if(isColony()){renderIndustry();return;}
     const s = G.st.slots[G.infoSlot];
     if (!s) { closeModal(); return; }
     const b = C.BUILDINGS[s.type];
@@ -1244,12 +1281,13 @@
     G.mode = 'busy'; G.busyKey = 'hint.building'; G.busyIcon = 'up';
     renderActions(); refreshHint();
     st.rocks -= cost; showDelta('rocks', -cost); updateHud();
+    s.lv++;
+    applyEffects(C.BUILDINGS[s.type].up);
+    saveGame();
     SFX.play('build');
     await ringCountdown(slot, 3);
-    s.lv++;
     renderSlot(slot, true);
     SFX.play('pop');
-    applyEffects(C.BUILDINGS[s.type].up);
     setMascot('cheer', 2200);
     say('say.upgraded', { b: { k: `b.${s.type}.one` } }, 3500);
     saveGame();
@@ -1258,7 +1296,7 @@
   }
   function doRemove() {
     const slot = G.infoSlot, s = G.st.slots[slot];
-    if (!s) return;
+    if (!s||isColony()&&SO.ensure(G.st).jobs.some(j=>j.slot===slot)) return;
     const refund = Math.floor(C.BUILDINGS[s.type].cost / 2);
     G.st.slots[slot] = null;
     G.st.rocks += refund; showDelta('rocks', refund);
@@ -1364,6 +1402,8 @@
   async function runChoice(id, opts) {
     opts = opts || {};
     const ch = C.CHOICES[id], st = G.st;
+    const choiceKey = st.session + ':' + st.step + ':' + st.freeIdx + ':' + id;
+    if (st.completedChoices.includes(choiceKey)) { await showCard(ch.card, {review:true}); return; }
     G.choice = { id, opts: optionList(id, !!opts.event), tried: [], wrongOpt: null, late: false, done: false };
     openModal('choice', renderChoice, { mid: true });
     if (opts.event && G.cfg.countdown > 0) startCountdown(G.cfg.countdown, opts.evName);
@@ -1405,11 +1445,12 @@
     st.log.max += C.REWARD.first.stars;
     st.done[id] = true;
     const review = st.book.includes(ch.card);
+    if (!review) st.book.push(ch.card);
+    st.log.cards.push({ id: ch.card, review });
+    st.completedChoices.push(choiceKey);
     saveGame();
     await sleep(1100);
     await showCard(ch.card, { review });
-    if (!review) st.book.push(ch.card);
-    st.log.cards.push({ id: ch.card, review });
     saveGame();
     renderActions();
     say('say.saved', null, 2400);
@@ -1491,19 +1532,20 @@
     const c = G.cardCtx;
     if (!c) return;
     const cd = C.CARDS[c.id];
-    const nasa = cd.source ? esc(tt(`cd.${c.id}.nasa`)) : esc(t('card.placeholder'));
+    const sourced = window.OX_STATE.nasaLink(cd.source);
+    const nasa = sourced ? esc(tt(`cd.${c.id}.nasa`)) : esc(t('card.placeholder'));
     let h = `<div class="lcard"><div class="strip cat-${cd.cat}"></div>
       <div class="lhead">${ART.icon(cd.icon)}<h2>${esc(t(`cd.${c.id}.title`))}</h2>
         ${c.fromBook ? '' : `<span class="tag">${ART.icon(c.review ? 'refresh' : 'sparkle')}${esc(t(c.review ? 'card.review' : 'card.new'))}</span>`}</div>
       <div class="lrow">${ART.icon('sparkle')}<div><div class="k">${esc(t('card.what'))}</div><div class="v">${esc(tt(`cd.${c.id}.what`))}</div></div></div>
       <div class="lrow">${ART.icon('idea')}<div><div class="k">${esc(t('card.why'))}</div><div class="v">${esc(tt(`cd.${c.id}.why`))}</div></div></div>
-      <div class="lrow">${ART.icon('rocket')}<div><div class="k">${esc(t('card.nasa'))}</div><div class="v ${cd.source ? '' : 'ph'}">${nasa}</div></div></div>
+      <div class="lrow">${ART.icon('rocket')}<div><div class="k">${esc(t('card.nasa'))}</div><div class="v ${sourced ? '' : 'ph'}">${nasa}</div></div></div>
       <div class="lrow like">${ART.icon('like')}<div><div class="k">${esc(t('card.like'))}</div><div class="v">${esc(tt(`cd.${c.id}.like`))}</div></div></div>`;
-    if (cd.source && c.src) {
-      const list = [{ url: cd.source, src: cd.src }].concat(cd.more || []);
+    if (sourced && c.src) {
+      const list = [{ url: cd.source, src: cd.src }].concat(cd.more || []).filter(item => window.OX_STATE.nasaLink(item.url));
       h += `<div class="srcbox"><b>${esc(t('card.source'))}:</b> ${list.map(s => `${esc(t('src.' + s.src))}<br><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">${esc(s.url)}</a>`).join('<br>')}<br><span class="gu">${esc(t('card.grownup'))}</span></div>`;
     }
-    h += `<div class="mfoot">${cd.source ? `<button class="btn secondary" data-act="learn">${ART.icon('link')}${esc(t('btn.learnMore'))}</button>` : ''}
+    h += `<div class="mfoot">${sourced ? `<button class="btn secondary" data-act="learn">${ART.icon('link')}${esc(t('btn.learnMore'))}</button>` : ''}
       <button class="btn" id="cardOk" data-act="${c.fromBook ? 'bookBack' : 'cardOk'}" data-focus="1">${ART.icon(c.fromBook ? 'book' : 'tick')}${esc(t(c.fromBook ? 'btn.back' : 'btn.gotIt'))}</button></div></div>`;
     $('#modal').innerHTML = h;
   }
@@ -1537,7 +1579,7 @@
     G.cd.timer = setInterval(() => {
       const cd = G.cd;
       if (run !== G.run || !cd) { stopCountdown(); return; }
-      if (cd.paused || G.modal !== 'choice' || (G.choice && G.choice.wrongOpt)) return;
+      if (document.hidden || !$('#explainPanel').hidden || cd.paused || G.modal !== 'choice' || (G.choice && G.choice.wrongOpt)) return;
       cd.left = Math.max(0, cd.left - 0.25);
       const whole = Math.abs(cd.left - Math.round(cd.left)) < 0.01;
       if (whole && cd.left > 0 && cd.left <= 5) SFX.play('tick');
@@ -1631,7 +1673,8 @@
     SFX.play('warn');
     showWarn(`ev.${id}.warn`);
     await eventStart(id);
-    applyEffects(ev.start);
+    const eventKey = G.st.session + ':' + G.st.step + ':' + G.st.freeIdx + ':' + id;
+    if (!G.st.eventStarts.includes(eventKey)) { applyEffects(ev.start); G.st.eventStarts.push(eventKey); saveGame(); }
     await sleep(1500);
     await runChoice(ev.choice, { event: true, evName: `ev.${id}.name` });
     hideWarn();
@@ -1649,7 +1692,7 @@
       darken(ev.dark);
     }
     await eventEnd(id);
-    applyEffects(ev.end);
+    if (!G.st.eventEnds.includes(eventKey)) { applyEffects(ev.end); G.st.eventEnds.push(eventKey); saveGame(); }
     darken(0);
     say(ev.endSay, null, 3500);
     await sleep(1400);
@@ -1660,7 +1703,8 @@
     const st = G.st, log = st.log || { cards: [], stars: 0, max: 0 };
     const ratio = log.max ? log.stars / log.max : 1;
     const tier = ratio >= C.BADGE.gold ? 'gold' : ratio >= C.BADGE.silver ? 'silver' : 'bronze';
-    st.badges.push({ s: st.session, tier });
+    if (!st.summaryPending) st.badges.push({ s: st.session, tier });
+    st.summaryPending = true;
     G.summary = { tier, cards: log.cards.slice(), stars: log.stars, free: isFree(), nextFree: st.session + 1 >= C.SESSIONS.length };
     saveGame();
     G.mode = 'busy';
@@ -1669,7 +1713,9 @@
     setMascot('cheer', 3200);
     await waitAct('sumNext');
     closeModal();
+    st.summaryPending = false;
     st.session++;
+    if(st.session===C.SESSIONS.length){st.campaignComplete=true;saveGame();goStart();return;}
     beginSession();
   }
   function renderSummary() {
@@ -1678,7 +1724,7 @@
     const n = s.cards.length;
     const nick = store.nick;
     let h = `<div class="summ"><div class="sleft">${ART.badge(s.tier)}<div class="tier">${esc(t('sum.badge.' + s.tier))}</div></div><div class="sright">
-      <h2>${esc(t(s.free ? 'sum.titleFree' : 'sum.title'))}</h2>
+      <h2>${esc(t(s.nextFree&&!s.free ? 'play.complete' : s.free ? 'sum.titleFree' : 'sum.title'))}</h2>${s.nextFree&&!s.free?'<p>'+esc(t('play.optional'))+'</p>':''}
       <div class="sub">${esc(nick ? t('sum.greatName', { name: nick }) : t('sum.great'))}</div>
       <div class="learned">${esc(n === 1 ? t('sum.learned1') : t('sum.learned', { n }))}</div><div class="llist">`;
     s.cards.forEach(c => {
@@ -1686,7 +1732,7 @@
       h += `<div class="li"><span class="dot cat-${cd.cat}"></span>${ART.icon(cd.icon)}<span>${esc(t(`cd.${c.id}.title`))}</span>${c.review ? `<span class="rv">${esc(t('sum.review'))}</span>` : ''}</div>`;
     });
     h += `</div><div class="starsrow">${ART.icon('star')}<span>${esc(t('sum.stars'))}:</span><span>${G.cfg.numbers ? '+' + s.stars : countVis(s.stars, 'stars')}</span></div>
-      <div class="mfoot"><button class="btn" id="sumNext" data-act="sumNext" data-focus="1">${ART.icon('play')}${esc(t(s.nextFree ? 'btn.keepBuilding' : 'btn.next'))}</button></div></div></div>`;
+      <div class="mfoot"><button class="btn" id="sumNext" data-act="sumNext" data-focus="1">${ART.icon('play')}${esc(t(s.nextFree&&!s.free ? 'play.finish' : s.free ? 'play.sandbox' : 'btn.next'))}</button></div></div></div>`;
     $('#modal').innerHTML = h;
   }
 
@@ -1713,15 +1759,7 @@
       <div class="mfoot"><button class="btn" id="failTry" data-act="failTry" data-focus="1">${ART.icon('refresh')}${esc(t('btn.tryAgain'))}</button>
       <button class="btn secondary" data-act="failQuit">${ART.icon('home')}${esc(t('btn.quit'))}</button></div></div>`;
   }
-  function restoreSnapshot() {
-    const st = G.st;
-    if (!st || !st.snap) return;
-    const book = st.book.slice();
-    const snap = clone(st.snap);
-    book.forEach(id => { if (!snap.book.includes(id)) snap.book.push(id); });   // learning is never lost
-    snap.snap = null;
-    G.st = snap;
-  }
+  function restoreSnapshot() { window.OX_STATE.recover(G.st); }
   function failTry() {
     restoreSnapshot();
     G.failed = false; G.mood = null;
@@ -1732,16 +1770,116 @@
     beginSession();
   }
   function failQuit() {
-    restoreSnapshot();
     G.failed = false;
-    G.st.snap = clone(Object.assign({}, G.st, { snap: null }));
     saveGame();
     closeModal();
     goStart();
   }
 
+  document.addEventListener('keydown', e => {
+    if (!$('#explainPanel').hidden && e.key==='Escape'){closeExplanation();return;}
+    if (!$('#explainPanel').hidden && e.key==='Tab'){e.preventDefault();$('#explainClose').focus();return;}
+    if (!G.modal || e.key !== 'Tab') return;
+    const stops = [...$('#modal').querySelectorAll('button:not(:disabled),a[href]'), ...$('#corner').querySelectorAll('button:not(:disabled)')].filter(el => el.getClientRects().length);
+    if (!stops.length) return;
+    const index = stops.indexOf(document.activeElement);
+    if (index < 0 || !e.shiftKey && index === stops.length-1 || e.shiftKey && index === 0) { e.preventDefault(); stops[e.shiftKey ? stops.length-1 : 0].focus(); }
+  });
+
+  // Mining choices, upgrades, readable goals and contextual explanations.
+  function renderMission() {
+    const el=$('#missionCard'),st=G.st;el.hidden=!st;$('#productionMarkers').hidden=!isColony();
+    if(isColony()){renderColonyCard();return;}
+    if(!st)return;
+    const def=C.SESSIONS[st.session],count=def?def.steps.length:1;
+    el.innerHTML='<strong>'+esc(t(def?'play.goal':'play.free',{n:st.session+1}))+'</strong><p>'+esc(t(def?'play.goal'+st.session:'play.optional'))+'</p>'+(def?'<progress max="'+count+'" value="'+Math.min(count,st.step)+'"></progress><small>'+esc(t('play.step',{n:Math.min(count,st.step+1),max:count}))+'</small>':'');
+  }
+  function renderMineProgress() {
+    const el=$('#mineProgress'),D=G.dig;el.hidden=!D||G.mode!=='dig'||!!G.modal;
+    if(el.hidden)return;
+    const taps=G.cfg.dig.taps+D.zone;
+    el.innerHTML='<strong>'+esc(t('play.zone'+D.zone))+'</strong><strong>'+esc(t('play.bag',{n:D.bag,max:D.capacity}))+'</strong><span>'+esc(t('play.spots',{n:D.i,max:D.kind==='dig'?SPOTS.length:ICES.length}))+'</span><label>'+esc(t('play.layer'))+'<progress max="'+taps+'" value="'+Math.min(taps,D.prog)+'"></progress></label>';
+  }
+  function renderWorkshop() {
+    const st=G.st,p=P.ensure(st);
+    $('#modal').innerHTML='<h2>'+esc(t('play.tools'))+'</h2><div class="tool-grid">'+P.TOOLS.map((k,i)=>{
+      const cost=P.cost(st,k),short=cost!==null&&st.rocks<cost;
+      return '<section class="tool-card">'+ART.icon(['pick','helmet','bag'][i])+'<h3>'+esc(t('play.'+k))+'</h3><strong>'+esc(t('play.level',{n:p.tools[k]+1}))+'</strong><p>'+esc(t('play.'+k+'.why'))+'</p><button class="btn" data-act="tool" data-val="'+k+'" '+(cost===null||short?'disabled':'')+'>'+esc(t(cost===null?'play.max':'play.upgrade',{n:cost}))+'</button>'+(short?'<p class="small">'+esc(t('play.short',{n:cost-st.rocks}))+'</p>':'')+'</section>';
+    }).join('')+'</div><div class="mfoot"><button class="btn secondary" id="playClose" data-act="close">'+esc(t('play.close'))+'</button></div>';
+  }
+  function renderMineMap() {
+    const st=G.st;
+    $('#modal').innerHTML='<h2>'+esc(t('play.choose'))+'</h2><p>'+esc(t('play.discovery',{n:P.ensure(st).finds.length}))+'</p><div class="tool-grid">'+[0,1,2].map(z=>'<section class="tool-card zone-card">'+ART.icon('rock')+'<h3>'+esc(t('play.zone'+z))+'</h3><p>'+esc(t('play.zone'+z+'.why'))+'</p><button class="btn" id="zone-'+z+'" data-act="zone" data-val="'+z+'" '+(P.unlocked(st,z)?'':'disabled')+'>'+esc(t(P.unlocked(st,z)?'play.dig':'play.unlock',{n:[0,12,30][z]}))+'</button></section>').join('')+'</div><div class="mfoot"><button class="btn secondary" data-act="close">'+esc(t('play.close'))+'</button></div>';
+  }
+  let explainFocus=null;
+  function showExplanation(key) {
+    explainFocus=document.activeElement;
+    let title=t('play.help'),body='',tip='';
+    if(['survival','air','power','water','food','rad','rocks','stars'].includes(key)){
+      title=t('hud.'+key);body=t('info.'+key+'.what');tip=t('info.'+key+'.tip');
+    }else{
+      body=isColony()?t('colony.plan'):G.hint?t(G.hint.key,G.hint.vars):t('play.hint.base');
+      if(G.choice)tip=tt('cd.'+C.CHOICES[G.choice.id].card+'.why');
+      else if(isColony())tip=t('colony.help');
+      else tip=t(G.modal==='info'||G.hint?.key==='hint.upgrade'?'play.hint.upgrade':'play.hint.base');
+    }
+    const el=$('#explainPanel');el.innerHTML='<div class="explain-card card"><h2>'+esc(title)+'</h2><strong>'+esc(t('play.what'))+'</strong><p>'+esc(body)+'</p><strong>'+esc(t('play.tip'))+'</strong><p>'+esc(tip)+'</p><button class="btn" id="explainClose">'+esc(t('play.close'))+'</button></div>';el.hidden=false;
+    $('#explainClose').addEventListener('click',closeExplanation);$('#explainClose').focus();
+  }
+  function closeExplanation() { const el=$('#explainPanel');if(el)el.hidden=true;if(explainFocus?.isConnected)explainFocus.focus();explainFocus=null; }
+  $('#hud').addEventListener('click',e=>{const b=e.target.closest('[data-explain]');if(b)showExplanation(b.dataset.explain);});
+
+  function isColony(){return !!G.st?.settlement;}
+  function saveBucket(){const key=store.playStyle==='guided'?'saves':'colonies';return store[key]||(store[key]={});}
+  function recipesFor(slot){return Object.entries(SO.RECIPES).filter(([,r])=>r.building===G.st.slots[slot]?.type);}
+  function goodsVisual(need){return Object.entries(need).map(([k,n])=>'<span>'+ART.icon(({rocks:'rock',ice:'ice',air:'air',water:'water',food:'food',usedWater:'water',power:'power',cabin:'air'})[k]||'bag')+' '+n+' '+esc(t('colony.'+k))+'</span>').join(' ');}
+  function goodsText(need){return Object.entries(need).map(([k,n])=>n+' '+t('colony.'+k)).join(' + ');}
+  function renderColonyCard(){
+    const el=$('#missionCard'),c=SO.ensure(G.st),sig=JSON.stringify([c.level,c.credits,c.orders,c.produced,G.moveSlot]);
+    if(el.dataset.sig!==sig){el.dataset.sig=sig;el.innerHTML='<strong>'+esc(t('colony.goal',{n:c.level}))+'</strong><p>'+esc(t('colony.credits',{n:c.credits}))+'</p><small>'+esc(t('colony.deliveries',{n:Math.min(6,c.orders)}))+'<br>'+esc(t('colony.produced',{n:Math.min(6,c.produced)}))+'</small><p>'+esc(t(G.moveSlot>=0?'colony.pickPlot':'colony.plan'))+'</p><button class="btn small" data-colony-hub>'+esc(t('colony.hub'))+'</button>'+(G.moveSlot>=0?'<button class="btn secondary small" data-cancel-move>'+esc(t('colony.cancelMove'))+'</button>':'');}
+    el.hidden=!!G.dig;renderJobs();
+  }
+  function renderOrders(){
+    const c=SO.ensure(G.st),built=G.st.slots.filter(Boolean).length,cost=c.level===1?16:c.level===2?40:0,need=c.level===1?2:4;
+    let html='<h2>'+esc(t('colony.hub'))+'</h2><div class="warehouse">'+SO.GOODS.map(k=>'<span><b>'+esc(t('colony.'+k))+'</b> '+c.stock[k]+(k!=='usedWater'?'<button class="btn small secondary" data-act="colonyUse" data-val="'+k+'" '+(!c.stock[k]||G.st.m[k]>=100?'disabled':'')+'>'+esc(t('colony.use'))+'</button>':'')+'</span>').join('')+'</div><div class="hq-tools"><button class="btn" data-act="colonyExpand" '+(!cost||c.credits<cost||built<need?'disabled':'')+'>'+esc(t(cost?'colony.upgrade':'colony.max',{n:cost}))+'</button>'+(cost?'<small>'+esc(t('colony.required',{n:need}))+'</small>':'')+'</div><div class="order-grid">';
+    for(const[id,o]of Object.entries(SO.ORDERS)){
+      const enough=Object.entries(o.need).every(([k,n])=>SO.amount(G.st,k)>=n);
+      html+='<section class="order-card"><h3>'+esc(t('colony.order.'+id))+'</h3><p>'+goodsVisual(o.need)+'</p><button class="btn" data-act="colonyDeliver" data-val="'+id+':'+c.orders+'" '+(!enough?'disabled':'')+'>'+esc(t('colony.deliver',{n:o.credits}))+'</button>'+(!enough?'<small>'+esc(t('colony.need'))+'</small>':'')+'</section>';
+    }
+    html+='</div><div class="mfoot"><button class="btn secondary" data-act="close">'+esc(t('btn.close'))+'</button></div>';
+
+    $('#modal').innerHTML=html;
+  }
+  function renderIndustry(){
+    const slot=G.infoSlot,b=G.st.slots[slot];if(!b){closeModal();return;}
+    const c=SO.ensure(G.st),job=c.jobs.find(x=>x.slot===slot);
+    if(G.infoConfirm){$('#modal').innerHTML='<h2>'+esc(t('info.removeAsk'))+'</h2><div class="mfoot"><button class="btn" data-act="removeNo">'+esc(t('btn.removeNo'))+'</button><button class="btn secondary" data-act="removeYes">'+esc(t('btn.removeYes'))+'</button></div>';return;}
+    let html='<div class="mhead"><h2>'+esc(t('b.'+b.type+'.name'))+'</h2><button class="btn secondary" data-act="close">'+esc(t('btn.close'))+'</button></div><p>'+esc(t('info.lv',{n:b.lv}))+'</p><div class="industry-layout">'+ART.buildingSvg(b.type)+'<div>';
+    for(const[id,r]of recipesFor(slot)){
+      const blocked=SO.canStart(G.st,slot,id);
+      html+='<section class="recipe-card"><h3>'+esc(t('colony.'+id))+'</h3><p>'+esc(t('colony.explain.'+id))+'</p><p><b>'+esc(t('colony.input'))+':</b> '+goodsVisual(r.input)+(r.power?' + '+r.power+' '+esc(t('colony.power')):'')+'</p><p><b>'+esc(t('colony.output'))+':</b> '+goodsVisual(SO.outputs(G.st,slot,id))+'</p><button class="btn" data-act="colonyStart" data-val="'+id+'" '+(blocked?'disabled':'')+'>'+esc(t('colony.start'))+'</button>'+(blocked?'<small>'+esc(t('colony.reason.'+blocked))+'</small>':'')+'</section>';
+    }
+    if(!recipesFor(slot).length)html+='<p>'+esc(t('colony.service'))+'</p>';
+    if(job)html+='<button class="btn" data-ready-job="'+job.id+'" data-act="colonyCollect" data-val="'+job.id+'"></button>';
+    html+='</div></div><div class="mfoot"><button class="btn secondary" data-act="colonyMove">'+esc(t('colony.move'))+'</button><button class="btn secondary" data-act="remove" '+(job?'disabled':'')+'>'+esc(t('colony.remove'))+'</button>'+(b.lv<3?'<button class="btn" id="upBtn" data-act="upgrade" '+(G.st.rocks<C.UPGRADE_COST[b.lv+1]?'disabled':'')+'>'+esc(t('btn.upgrade'))+' · '+C.UPGRADE_COST[b.lv+1]+' '+esc(t('hud.rocks'))+'</button>':'')+'</div>';
+    $('#modal').innerHTML=html;renderJobs();
+  }
+  function renderJobs(){
+    const layer=$('#productionMarkers');layer.hidden=!isColony()||G.screen!=='game';if(layer.hidden)return;
+    const c=SO.ensure(G.st),sig=c.jobs.map(j=>j.id+':'+j.slot).join(',');
+    if(layer.dataset.sig!==sig){layer.dataset.sig=sig;layer.innerHTML=c.jobs.map(j=>'<button class="job-marker" style="left:'+(SLOT_X[j.slot]-50)+'px" data-ready-job="'+j.id+'" data-collect="'+j.id+'"></button>').join('');}
+    for(const el of $$('[data-ready-job]')){const job=c.jobs.find(j=>j.id===Number(el.dataset.readyJob));if(!job)continue;const left=Math.max(0,Math.ceil((job.readyAt-Date.now())/1000));el.disabled=left>0;el.textContent=t(left?'colony.wait':'colony.collect',{n:left});el.classList.toggle('ready',left===0);}
+  }
+  function learnByDoing(id){if(!C.CARDS[id])return;if(!G.st.book.includes(id))G.st.book.push(id);if(C.CHOICES[id])G.st.done[id]=true;}
+  function collectColony(id){const recipe=SO.ensure(G.st).jobs.find(j=>j.id===Number(id))?.recipe;if(!SO.collect(G.st,Number(id)))return;learnByDoing(({charge:'solar',rockAir:'rocksAir',iceWater:'iceWater',oxygen:'oxygen',garden:'plants',recycle:'waterRec',clean:'co2'})[recipe]);saveGame();updateHud();renderMission();if(G.modal==='industry')renderIndustry();say('colony.collected',null,2500);if(!checkFail())checkColonyWin();}
+  function checkColonyWin(){const c=SO.ensure(G.st);if(!SO.won(G.st)||c.celebrated)return;c.celebrated=true;saveGame();openModal('colonyWin',()=>{$('#modal').innerHTML='<h2>'+esc(t('colony.ready'))+'</h2><p>'+esc(t('colony.win'))+'</p><div class="mfoot"><button class="btn" data-act="close">'+esc(t('colony.stay'))+'</button><button class="btn secondary" data-act="colonyLeave">'+esc(t('colony.leave'))+'</button></div>';});}
+  $('#productionMarkers').addEventListener('click',e=>{const b=e.target.closest('[data-collect]');if(b&&!b.disabled&&!G.modal)collectColony(b.dataset.collect);});
+  $('#btnOrders').addEventListener('click',()=>{if(isColony()&&G.mode==='base'&&!G.modal)openModal('orders',renderOrders);});
+  $('#missionCard').addEventListener('click',e=>{if(e.target.closest('[data-cancel-move]')){G.moveSlot=-1;renderMission();}else if(e.target.closest('[data-colony-hub]')&&!G.modal&&G.mode==='base')openModal('orders',renderOrders);});
+  $$('[data-play-style]').forEach(b=>b.addEventListener('click',()=>{store.playStyle=b.dataset.playStyle;persist();renderStart();}));
+
   // ------------------------------------------------------------------ start
-  SFX.setMuted(!!store.muted);
+  SFX.setMuted(store.muted !== false);
   setAstro(IDLE_X, GROUND);
   applyStatic();
   renderCorner();
@@ -1750,5 +1888,5 @@
   requestAnimationFrame(tickPointer);
 
   // A tiny hook for automated checks (read-only view of the state).
-  window.OX_DEBUG = { get state() { return G.st; }, get mode() { return G.mode; }, get modal() { return G.modal; }, get hint() { return G.hint; } };
+  window.OX_DEBUG = { get state() { return G.st; }, get mode() { return G.mode; }, get modal() { return G.modal; }, get hint() { return G.hint; }, get choice() { return G.choice ? {id:G.choice.id,wrongOpt:G.choice.wrongOpt,tried:G.choice.tried.slice()} : null; }, get countdown() { return G.cd ? {left:G.cd.left,paused:G.cd.paused} : null; }, get step() { return currentStep(); } };
 })();
