@@ -1,12 +1,20 @@
-# OxyNest Research
+# OxyNest Space Apps
 
 **Build Life Beyond Earth.** Previously named Beyond Earth: Settler.
 
-This repository publishes the initial OxyNest research datasets, supplied source references and local data-validation tools. It contains no playable game, B gameplay implementation, game assets, later integration code or deployment workflow.
+This repository contains the initial OxyNest research datasets and B's unmodified Kids game delivery. Later integration and autonomous-management changes are not included.
 
-**Research snapshot recorded:** November 4, 2026. **Publication:** November 14, 2026. The publication date is not the project start date. Later gameplay work is outside this repository's current scope; this is a selected research release, not a complete chronological history of all project work.
+**Research snapshot recorded:** November 4, 2026. **Publication:** November 14, 2026. The publication date is not the project start date. B's received November 13 game was added on November 14. Later modified gameplay remains outside this publication.
 
-## Contents
+## Play B's received game
+
+Download and extract the repository ZIP, then open `game/index.html` in a desktop browser. The received game runs offline with local assets. It uses HTML, CSS, JavaScript and inline SVG; there are no frameworks or runtime packages to install. This is the original mission-guided Kids version, including its received sound effects and recovery behavior.
+
+The game snapshot is preserved byte-for-byte except for an omitted local editor configuration. See [delivery notes](docs/GAME_DELIVERY.md) and [source hashes](docs/GAME_SOURCE_MANIFEST.json). This repository URL provides code and downloads; no live game website or GitHub Pages deployment has been enabled.
+
+Tools and AI assistance are acknowledged in [CREDITS.md](CREDITS.md) and `project-metadata.json`.
+
+## Research contents
 
 | Dataset | Research topic |
 | --- | --- |

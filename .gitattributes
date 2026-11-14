@@ -4,3 +4,6 @@ old/** -text
 data/** -text
 data.html -text
 tools/check-data.js -text
+
+# Preserve B's received game snapshot byte-for-byte.
+game/** -text

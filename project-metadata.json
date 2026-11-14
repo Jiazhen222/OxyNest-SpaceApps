@@ -1,0 +1,35 @@
+{
+  "name": "OxyNest",
+  "tagline": "Build Life Beyond Earth.",
+  "release_scope": "Initial research and unmodified B Kids game delivery",
+  "game_entry": "game/index.html",
+  "source_received": "2026-11-13",
+  "published": "2026-11-14",
+  "game_modified": false,
+  "ai_assistance": [
+    {
+      "tool": "Claude Code",
+      "scope": "Received B game code, including inline SVG/CSS artwork",
+      "reported_by": "Teammate B"
+    },
+    {
+      "tool": "OpenAI Codex",
+      "scope": "Research validation tooling, integration review and publication preparation"
+    },
+    {
+      "tool": "Google Gemini",
+      "scope": "Research discovery and organization",
+      "reported_by": "Teammate D"
+    }
+  ],
+  "excluded": [
+    "Later integrated and autonomous-management gameplay",
+    "Presentation and video assets",
+    "Local editor configuration"
+  ],
+  "references": [
+    "CREDITS.md",
+    "docs/GAME_SOURCE_MANIFEST.json",
+    "game/docs/FACTS.md"
+  ]
+}
