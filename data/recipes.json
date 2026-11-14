@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Beyond Earth: Settler - ISRU and Resource Recipes",
+  "version": "1.0.0",
+  "created_for": "D missing JSON handoff",
+  "data_policy": "All inputs/outputs are abstract GAME UNITS, not physical kg. Values are game-balancing assumptions until B confirms the economy.",
+  "unit_system": {
+    "materials": "game_units",
+    "water": "game_units",
+    "oxygen": "game_units",
+    "food": "game_units",
+    "fuel": "game_units",
+    "power_kw": "kW game-balancing load",
+    "duration_hours": "game simulation hours"
+  },
+  "recipes": [
+    {
+      "id": "regolith_to_oxygen",
+      "name": "Regolith Oxygen Extraction",
+      "inputs": {
+        "regolith": 12
+      },
+      "outputs": {
+        "oxygen": 4,
+        "materials": 2
+      },
+      "power_kw": 6,
+      "duration_hours": 4,
+      "required_modules": [
+        "processor"
+      ],
+      "enabled": true,
+      "parameter_status": "GAME_BALANCE_ASSUMPTION",
+      "source": "https://www.nasa.gov/space-technology-mission-directorate/lunar-surface-innovation-initiative/",
+      "source_scope": "NASA describes the science or technology, not the game conversion rates, power, or time.",
+      "notes": "Conceptual lunar oxygen extraction; not a NASA-verified yield."
+    },
+    {
+      "id": "ice_to_water",
+      "name": "Polar Ice Processing",
+      "inputs": {
+        "water_ice": 10
+      },
+      "outputs": {
+        "water": 7
+      },
+      "power_kw": 3,
+      "duration_hours": 3,
+      "required_modules": [
+        "processor"
+      ],
+      "enabled": true,
+      "parameter_status": "GAME_BALANCE_ASSUMPTION",
+      "source": "https://www.nasa.gov/space-technology-mission-directorate/lunar-surface-innovation-initiative/",
+      "source_scope": "NASA describes the science or technology, not the game conversion rates, power, or time.",
+      "notes": "Requires a hypothetical local ice deposit; ice availability is site-dependent."
+    },
+    {
+      "id": "water_electrolysis",
+      "name": "Water Electrolysis",
+      "inputs": {
+        "water": 6
+      },
+      "outputs": {
+        "oxygen": 4
+      },
+      "power_kw": 4,
+      "duration_hours": 2,
+      "required_modules": [
+        "oxygen_generator"
+      ],
+      "enabled": true,
+      "parameter_status": "GAME_BALANCE_ASSUMPTION",
+      "source": "https://www.nasa.gov/international-space-station/environmental-control-and-life-support-system/",
+      "source_scope": "NASA describes the science or technology, not the game conversion rates, power, or time.",
+      "notes": "Oxygen output is game units; hydrogen handling is abstracted."
+    },
+    {
+      "id": "water_recycling",
+      "name": "Water Recovery Cycle",
+      "inputs": {
+        "wastewater": 10
+      },
+      "outputs": {
+        "water": 8
+      },
+      "power_kw": 2,
+      "duration_hours": 2,
+      "required_modules": [
+        "water_recycler"
+      ],
+      "enabled": true,
+      "parameter_status": "GAME_BALANCE_ASSUMPTION",
+      "source": "https://www.nasa.gov/international-space-station/environmental-control-and-life-support-system/",
+      "source_scope": "NASA describes the science or technology, not the game conversion rates, power, or time.",
+      "notes": "80% game recovery selected for balance; not a NASA-certified recovery percentage."
+    },
+    {
+      "id": "greenhouse_food",
+      "name": "Greenhouse Harvest",
+      "inputs": {
+        "water": 5,
+        "nutrients": 2
+      },
+      "outputs": {
+        "food": 7
+      },
+      "power_kw": 3,
+      "duration_hours": 8,
+      "required_modules": [
+        "greenhouse"
+      ],
+      "enabled": true,
+      "parameter_status": "GAME_BALANCE_ASSUMPTION",
+      "source": "https://science.nasa.gov/mission/veggie/",
+      "source_scope": "NASA describes the science or technology, not the game conversion rates, power, or time.",
+      "notes": "Crop yield and growth time heavily compressed for gameplay."
+    },
+    {
+      "id": "mars_co2_to_oxygen",
+      "name": "Mars Atmospheric Oxygen ISRU",
+      "inputs": {
+        "mars_co2": 12
+      },
+      "outputs": {
+        "oxygen": 4
+      },
+      "power_kw": 6,
+      "duration_hours": 4,
+      "required_modules": [
+        "processor"
+      ],
+      "enabled": true,
+      "parameter_status": "GAME_BALANCE_ASSUMPTION",
+      "source": "https://www.nasa.gov/solar-system/nasas-oxygen-generating-experiment-moxie-completes-mars-mission/",
+      "source_scope": "NASA describes the science or technology, not the game conversion rates, power, or time.",
+      "notes": "MOXIE demonstrates feasibility, not this output rate; only available at Mars with processor."
+    },
+    {
+      "id": "propellant_synthesis",
+      "name": "Mission Propellant Synthesis",
+      "inputs": {
+        "water": 4,
+        "materials": 6
+      },
+      "outputs": {
+        "fuel": 3
+      },
+      "power_kw": 7,
+      "duration_hours": 5,
+      "required_modules": [
+        "processor"
+      ],
+      "enabled": true,
+      "parameter_status": "GAME_BALANCE_ASSUMPTION",
+      "source": "https://www.nasa.gov/space-technology-mission-directorate/lunar-surface-innovation-initiative/",
+      "source_scope": "NASA describes the science or technology, not the game conversion rates, power, or time.",
+      "notes": "Fictional simplified game recipe; not a physically complete propellant process."
+    }
+  ],
+  "implementation_notes": [
+    "Do not treat inputs/outputs as kg or NASA hardware performance.",
+    "B should map inventory resource names and simulation tick length before integrating.",
+    "Do not silently auto-consume resources when input stock is insufficient.",
+    "Mars recipe should be destination-gated."
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Beyond Earth: Settler - Situation Wheel",
+  "version": "1.0.0",
+  "created_for": "D missing JSON handoff",
+  "selection_mode": "weighted_random",
+  "default_choice_seconds": 60,
+  "effects_unit": "abstract_game_units",
+  "events": [
+    {
+      "id": "solar_output_drop",
+      "title": "Reduced Solar Output",
+      "type": "decision",
+      "weight": 1,
+      "scenario": "Solar generation is lower than expected. Choose a power strategy.",
+      "choices": [
+        {
+          "id": "shed",
+          "text": "Pause nonessential processing",
+          "effects": {
+            "power_reserve": 8,
+            "mission_funds": -5
+          },
+          "feedback": "Prioritizing life-support loads conserves energy."
+        },
+        {
+          "id": "continue",
+          "text": "Keep all systems active",
+          "effects": {
+            "power_reserve": -12,
+            "mission_funds": 5
+          },
+          "feedback": "Short-term productivity increases the energy burden."
+        }
+      ],
+      "source": "https://science.nasa.gov/moon/facts/",
+      "source_scope": "NASA supports the scientific context; event frequency, impacts, and rewards are gameplay assumptions.",
+      "parameter_status": "GAME_BALANCE_ASSUMPTION"
+    },
+    {
+      "id": "co2_scrubber_maintenance",
+      "title": "Air Recycling Maintenance",
+      "type": "decision",
+      "weight": 1,
+      "scenario": "A CO2 removal system needs maintenance.",
+      "choices": [
+        {
+          "id": "repair",
+          "text": "Spend materials to service the scrubber",
+          "effects": {
+            "materials": -6,
+            "co2_risk": -2
+          },
+          "feedback": "Preventive maintenance reduces operational risk."
+        },
+        {
+          "id": "delay",
+          "text": "Delay service for one turn",
+          "effects": {
+            "materials": 0,
+            "co2_risk": 2
+          },
+          "feedback": "Deferring maintenance raises the modeled risk."
+        }
+      ],
+      "source": "https://www.nasa.gov/international-space-station/environmental-control-and-life-support-system/",
+      "source_scope": "NASA supports the scientific context; event frequency, impacts, and rewards are gameplay assumptions.",
+      "parameter_status": "GAME_BALANCE_ASSUMPTION"
+    },
+    {
+      "id": "ice_deposit",
+      "title": "Ice Prospecting Opportunity",
+      "type": "decision",
+      "weight": 1,
+      "scenario": "Sensors indicate a possible ice-bearing area nearby.",
+      "choices": [
+        {
+          "id": "survey",
+          "text": "Survey before extraction",
+          "effects": {
+            "mission_funds": -4,
+            "water_ice": 6
+          },
+          "feedback": "Surveying helps reduce uncertainty about local resources."
+        },
+        {
+          "id": "skip",
+          "text": "Conserve exploration resources",
+          "effects": {
+            "mission_funds": 0,
+            "water_ice": 0
+          },
+          "feedback": "The opportunity is postponed."
+        }
+      ],
+      "source": "https://www.nasa.gov/space-technology-mission-directorate/lunar-surface-innovation-initiative/",
+      "source_scope": "NASA supports the scientific context; event frequency, impacts, and rewards are gameplay assumptions.",
+      "parameter_status": "GAME_BALANCE_ASSUMPTION"
+    },
+    {
+      "id": "greenhouse_issue",
+      "title": "Greenhouse Crop Stress",
+      "type": "decision",
+      "weight": 1,
+      "scenario": "Plants need additional attention to light and water.",
+      "choices": [
+        {
+          "id": "support",
+          "text": "Allocate extra water and power",
+          "effects": {
+            "water": -3,
+            "food": 5,
+            "power_reserve": -3
+          },
+          "feedback": "Plant growth depends on controlled environmental conditions."
+        },
+        {
+          "id": "wait",
+          "text": "Avoid spending resources",
+          "effects": {
+            "food": -3
+          },
+          "feedback": "Harvest is reduced in this scenario."
+        }
+      ],
+      "source": "https://science.nasa.gov/mission/veggie/",
+      "source_scope": "NASA supports the scientific context; event frequency, impacts, and rewards are gameplay assumptions.",
+      "parameter_status": "GAME_BALANCE_ASSUMPTION"
+    },
+    {
+      "id": "solar_weather",
+      "title": "Space Weather Advisory",
+      "type": "decision",
+      "weight": 1,
+      "scenario": "Mission control issues a solar activity advisory.",
+      "choices": [
+        {
+          "id": "shelter",
+          "text": "Suspend EVA and prioritize shielding",
+          "effects": {
+            "mission_funds": -3,
+            "radiation_risk": -2
+          },
+          "feedback": "Sheltering is a prudent modeled response to elevated radiation risk."
+        },
+        {
+          "id": "proceed",
+          "text": "Continue planned exterior work",
+          "effects": {
+            "mission_funds": 5,
+            "radiation_risk": 3
+          },
+          "feedback": "The game models greater exposure risk; this is not a NASA dose estimate."
+        }
+      ],
+      "source": "https://science.nasa.gov/sun/",
+      "source_scope": "NASA supports the scientific context; event frequency, impacts, and rewards are gameplay assumptions.",
+      "parameter_status": "GAME_BALANCE_ASSUMPTION"
+    },
+    {
+      "id": "eva_schedule",
+      "title": "EVA Time Budget",
+      "type": "decision",
+      "weight": 1,
+      "scenario": "A planned EVA is running behind schedule.",
+      "choices": [
+        {
+          "id": "return",
+          "text": "End the EVA and return to base",
+          "effects": {
+            "mission_funds": -3,
+            "eva_risk": -2
+          },
+          "feedback": "Consumable reserves and time constraints matter."
+        },
+        {
+          "id": "extend",
+          "text": "Extend the task",
+          "effects": {
+            "mission_funds": 6,
+            "eva_risk": 2
+          },
+          "feedback": "Extending work increases modeled consumables risk."
+        }
+      ],
+      "source": "https://www.nasa.gov/spacesuit/",
+      "source_scope": "NASA supports the scientific context; event frequency, impacts, and rewards are gameplay assumptions.",
+      "parameter_status": "GAME_BALANCE_ASSUMPTION"
+    }
+  ],
+  "implementation_notes": [
+    "Effect keys are suggested state variables; B must map them to actual game state.",
+    "Negative inventories should be clamped or rejected by the game engine.",
+    "Random outcomes are fictional educational scenarios, not predicted NASA event probabilities.",
+    "Events with no valid choice should not alter state."
+  ]
+}

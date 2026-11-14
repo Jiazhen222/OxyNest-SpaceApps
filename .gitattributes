@@ -1,0 +1,6 @@
+# Preserve supplied handoff bytes across platforms.
+new/** -text
+old/** -text
+data/** -text
+data.html -text
+tools/check-data.js -text

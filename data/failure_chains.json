@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Traceable Failure Chains and Decision Logic",
+  "version": "1.0.0",
+  "last_verified": "2026-10-27",
+  "rule_a_plus_statement": "No random death. Death comes only from an environmental limit breach driven by an identifiable player choice or failure to act.",
+  "chains": [
+    {
+      "id": "chain_lunar_night_co2_suffocation",
+      "name": "Lunar Night Power Blackout & Hypercapnia",
+      "name_zh": "月夜断电引发二氧化碳窒息连锁",
+      "trigger_event": "Lunar sunset (14-day night begins)",
+      "culprit_decision_tags": ["refused_load_shed_blackout_risk", "built_insufficient_batteries"],
+      "sequence_steps": [
+        "Solar array output drops to 0.0 kW as sun sets below the horizon",
+        "Outpost continues running full factory loads without shedding non-essential power",
+        "Battery reserves deplete completely to 0 kWh at Night Hour 110",
+        "Unpowered CDRA scrubber ceases chemical amine absorption",
+        "Crew respiration accumulates metabolic CO2 past the critical ceiling of 7.5 mmHg (1.0 kPa)"
+      ],
+      "terminal_metric": "cabin_co2_partial_pressure_mmhg",
+      "breach_threshold": 7.5,
+      "cause_of_death_scientific": "Acute hypercapnia, severe respiratory acidosis, and cognitive collapse",
+      "traceability_sentence_template": "On Day {day} at {hour}:00, I chose {decision_text}, which pushed Cabin CO2 to {value} mmHg (limit 3.0 mmHg), so I did not survive.",
+      "traceability_sentence_template_zh": "第 {day} 天 {hour}:00，我选择【{decision_text}】，导致舱内二氧化碳升至 {value} mmHg（安全上限 3.0 mmHg），所以我没能活下来。",
+      "how_nasa_avoids_it": "NASA Artemis Base Camp flight rules mandate automatic load-shedding to secondary life-support priorities and deploy passive LiOH backup scrubbers.",
+      "source": "https://ntrs.nasa.gov/citations/20150021777",
+      "citation": "NASA NTRS 20150021777: SMAC for Carbon Dioxide & LSII Surface Power."
+    },
+    {
+      "id": "chain_micrometeoroid_decompression",
+      "name": "Unpatched Micrometeoroid Breach & Decompression",
+      "name_zh": "微陨石穿孔未及时修补引发减压连锁",
+      "trigger_event": "Micrometeoroid hull breach alert",
+      "culprit_decision_tags": ["postponed_leak_wasted_o2"],
+      "sequence_steps": [
+        "High-velocity micrometeoroid punctures habitat pressure vessel shell",
+        "Pressure begins leaking at 0.8 kPa per hour",
+        "Player chooses to postpone repair and rely on buffer gas rather than expending patch materials",
+        "Atmospheric buffer depleted; cabin pressure falls through 90 kPa (Caution) to 75 kPa (Warning)",
+        "Cabin total pressure plummets below critical 70.0 kPa (10.1 psia)"
+      ],
+      "terminal_metric": "cabin_total_pressure_kpa",
+      "breach_threshold": 70.0,
+      "cause_of_death_scientific": "Acute hypoxic hypoxia and rapid decompression sickness (ebullism risk threshold)",
+      "traceability_sentence_template": "On Day {day} at {hour}:00, I chose {decision_text}, which pushed Cabin Pressure down to {value} kPa (nominal 101.3 kPa), so I did not survive.",
+      "traceability_sentence_template_zh": "第 {day} 天 {hour}:00，我选择【{decision_text}】，导致舱内总压跌至 {value} kPa（标准标称 101.3 kPa），所以我没能活下来。",
+      "how_nasa_avoids_it": "ISS Emergency Depressurization procedures require immediate hatch isolation of the punctured module within minutes.",
+      "source": "https://standards.nasa.gov/sites/default/files/standards/NASA/D/nasa-std-3001-vol-2-rev-d-signature.pdf",
+      "citation": "NASA-STD-3001 Vol 2 Rev D, Section 6.1 (Pressure Integrity)."
+    },
+    {
+      "id": "chain_spe_radiation_poisoning",
+      "name": "Solar Particle Event Unshielded Exposure",
+      "name_zh": "强行暴露于太阳粒子风暴引发急性辐射病",
+      "trigger_event": "Coronal mass ejection (SPE Warning)",
+      "culprit_decision_tags": ["risked_spe_severe_dose"],
+      "sequence_steps": [
+        "Solar monitoring satellite warns of high-energy proton surge",
+        "Player decides to ignore warning and keep astronaut outside mining ice",
+        "Intense proton flux impacts unshielded astronaut at >150 mSv/hour",
+        "Total cumulative dose surpasses the 600 mSv NASA lifetime occupational cap",
+        "Radiation exceeds acute clinical toxicity threshold (>1000 mSv equivalent)"
+      ],
+      "terminal_metric": "cumulative_radiation_dose_msv",
+      "breach_threshold": 600.0,
+      "cause_of_death_scientific": "Acute radiation syndrome (hematopoietic and gastrointestinal collapse)",
+      "traceability_sentence_template": "On Day {day} at {hour}:00, I chose {decision_text}, which pushed Radiation Dose to {value} mSv (career cap 600 mSv), so I did not survive.",
+      "traceability_sentence_template_zh": "第 {day} 天 {hour}:00，我选择【{decision_text}】，导致累积辐射剂量骤升至 {value} mSv（终身安全上限 600 mSv），所以我没能活下来。",
+      "how_nasa_avoids_it": "Space Radiation Analysis Group (SRAG) mandates immediate crew recall to storm shelters shielded by regolith or water tanks.",
+      "source": "https://srag.jsc.nasa.gov/SpaceRadiation/FAQ/FAQ.cfm",
+      "citation": "NASA Space Radiation Analysis Group (SRAG) Operational Limits."
+    },
+    {
+      "id": "chain_eva_oxygen_exhaustion",
+      "name": "Spacewalk Consumable Overextension",
+      "name_zh": "出舱作业严重超时导致宇航服缺氧",
+      "trigger_event": "Resource point mining greed / overextension",
+      "culprit_decision_tags": ["overextended_eva_past_limit"],
+      "sequence_steps": [
+        "Astronaut completes standard 7-hour sortie limit at distant crater rim",
+        "Player decides to dig for one more batch of ice rather than returning",
+        "Primary PLSS oxygen bottle exhausts at Hour 7.2",
+        "Secondary 30-minute emergency pack engages while still 45 minutes walking distance from airlock",
+        "Suit oxygen pressure drops to 0.0 kPa before ingress can occur"
+      ],
+      "terminal_metric": "eva_suit_oxygen_minutes_left",
+      "breach_threshold": 0,
+      "cause_of_death_scientific": "Anoxia and suffocation inside the extravehicular mobility suit",
+      "traceability_sentence_template": "On Day {day} at {hour}:00, I chose {decision_text}, which pushed Suit Oxygen down to {value} minutes, so I did not survive.",
+      "traceability_sentence_template_zh": "第 {day} 天 {hour}:00，我选择【{decision_text}】，导致宇航服氧气耗尽至 {value} 分钟（违反 7 小时安全法则），所以我没能活下来。",
+      "how_nasa_does_it": "Strict EVA flight rules enforce 'Point of No Return' consumable thresholds based on return walk time and terrain difficulty.",
+      "source": "https://www.nasa.gov/stem-content/artemis-generation-spacesuits-activity/",
+      "citation": "NASA STEM Artemis Generation Spacesuits Activity (Consumables Rule)."
+    },
+    {
+      "id": "chain_food_starvation_collapse",
+      "name": "Greenhouse Neglect & Food Reserve Depletion",
+      "name_zh": "温室断电弃管导致粮食断绝衰竭",
+      "trigger_event": "Logistical failure to cultivate and prioritize crop cycle",
+      "culprit_decision_tags": ["neglected_greenhouse_power_cut"],
+      "sequence_steps": [
+        "Prepackaged astronaut rations dwindle to critical 5 days",
+        "Player routes water and electricity away from the Veggie greenhouse to run excess mining",
+        "Hydroponic lettuce and crop seedlings desiccate and die",
+        "Ration inventory hits 0 kcal with no fresh harvest available",
+        "Crew energy deficit triggers severe metabolic exhaustion and incapacitation"
+      ],
+      "terminal_metric": "food_days_left",
+      "breach_threshold": 0,
+      "cause_of_death_scientific": "Metabolic exhaustion and multi-system organ failure from severe prolonged starvation",
+      "traceability_sentence_template": "On Day {day} at {hour}:00, I chose {decision_text}, which pushed Food Reserves to {value} days, so I did not survive.",
+      "traceability_sentence_template_zh": "第 {day} 天 {hour}:00，我选择【{decision_text}】，导致粮食储备归零（{value} 天余量），所以我没能活下来。",
+      "how_nasa_does_it": "NASA deep-space missions require a minimum 30% consumable logistics margin on calories and macro-nutrients.",
+      "source": "https://www.nasa.gov/human-integration-design-handbook/",
+      "citation": "NASA Human Integration Design Handbook (HIDH), Consumables Margin Planning."
+    }
+  ]
+}
