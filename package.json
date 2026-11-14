@@ -8,9 +8,7 @@
   },
   "scripts": {
     "test": "node --test tests/*.test.cjs",
-    "check:data": "node tools/check-data.js && node tools/check-structure.cjs",
-    "prepare:data": "node tools/prepare-english-data.cjs",
-    "test:game": "node --test tests/game-handoff.test.cjs",
+    "test:game": "node --test tests/game-handoff.test.cjs tests/kids-*.test.cjs tests/settlement.test.cjs",
     "check:game": "node game/tools/check.js && npm run test:game",
     "build": "npm run check:game && node tools/build.cjs",
     "start": "node tools/serve.cjs",

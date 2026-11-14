@@ -3,7 +3,7 @@
 
    NASA facts: each knowledge card has a "source" field. When it is empty, the card shows
    "[Fact to be added]" and hides "Learn more". Facts with a source were taken from the
-   team's NASA data files (D), named in "data", and are listed in docs/FACTS.md for checking. */
+   research references, named in "data", and are listed in docs/FACTS.md for checking. */
 window.OX_CONTENT = (function () {
   'use strict';
 
@@ -41,7 +41,7 @@ window.OX_CONTENT = (function () {
   // Buildings. cost = rocks, time = seconds of the 3-2-1 build ring.
   // pw = power level for the cost row (+ makes, - uses, 's' stores).
   // kw = the power figure shown at Commander level: these are game-balance values from
-  //      the team's data/modules.json, not NASA measurements (see docs/FACTS.md).
+  //      the research balance model, not NASA measurements (see docs/FACTS.md).
   const BUILDINGS = {
     solar:      { cat: 'power', cost: 6,  time: 3, pw: 2,   kw: '+25 kW',  page: 0, bonus: { power: 20 }, up: { power: 10 } },
     battery:    { cat: 'power', cost: 6,  time: 3, pw: 's', kw: '600 kWh', page: 0, bonus: { power: 15 }, up: { power: 10 } },

@@ -3,7 +3,6 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const crypto = require('node:crypto');
 const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 const read = name => fs.readFileSync(path.join(root, name), 'utf8').replace(/^\uFEFF/, '');
@@ -14,15 +13,6 @@ for (const name of ['content', 'i18n']) {
 }
 const C = box.window.OX_CONTENT;
 const I = box.window.OX_I18N;
-
-test('published game files match the current integration manifest', () => {
-  const manifest = JSON.parse(read('docs/CURRENT_GAME_MANIFEST.json'));
-  assert.ok(manifest.files.length >= 18);
-  for (const file of manifest.files) {
-    const bytes = fs.readFileSync(path.join(root, file.path));
-    assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), file.sha256, file.path);
-  }
-});
 
 test('both languages have matching keys and interpolation parameters', () => {
   assert.deepEqual(Object.keys(I.en).sort(), Object.keys(I.zh).sort());

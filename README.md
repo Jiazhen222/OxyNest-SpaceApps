@@ -2,13 +2,102 @@
 
 **Build Life Beyond Earth.**
 
-A desktop educational Moon base-building game designed for ages 5–12. The current version combines autonomous settlement management with optional guided missions. English and Chinese are supported. There is no background music, account, backend or player analytics service. Progress is stored in the current browser.
+OxyNest is an educational Moon base-building game designed for children aged 5–12. Players explore for resources, build a settlement and discover how air, water, food and power depend on one another. The aim is to make space-settlement ideas understandable through decisions and visible results.
 
-## Play locally
+## Start playing
 
-Download and extract this repository, then open `game/index.html` in a desktop browser. Choose **Build my base** for autonomous management or **Guided missions** for the step-by-step campaign. These modes save separately. Use **Quit** to return to the menu.
+1. On this GitHub page, choose **Code → Download ZIP**.
+2. Extract the ZIP completely.
+3. Open **index.html**, or **game/index.html**, in a desktop browser.
+4. Choose English or Chinese. A space nickname is optional; a real name is not needed.
+5. Choose an age level and select **Build my base** or **Guided missions**.
 
-For development, use Node.js 24 or later. No npm packages are required:
+No installation, account or internet connection is required for the game itself. NASA reference links open external websites. There is no background music. The project currently provides downloadable source; a hosted game URL has not been published.
+
+Repository: https://github.com/Jiazhen222/OxyNest-SpaceApps
+
+## Choose a mode
+
+| Mode | What to expect |
+| --- | --- |
+| **Build my base** | Freely choose buildings, run production, explore, complete supply orders and expand your outpost. This is the default experience. |
+| **Guided missions** | Follow the mascot's prompts through mining, construction, questions and space events. Four missions introduce the main systems. |
+
+The two modes save separately for each age level. Switching modes does not replace the other base.
+
+## Play Build my base
+
+There is no required building order. This is one possible way to begin:
+
+1. **Choose a building.** Tap an empty plot to see facilities, costs and uses. A solar panel helps supply power; a Processor provides resource-conversion routes. You begin with 16 game rocks.
+2. **Explore for materials.** Use **Go outside** for rocks or **Mine ice** for ice. Tap deposits to gather cargo, clear dust when needed, and watch suit air. Returning banks the collected materials. If suit air runs out, the astronaut returns with the cargo.
+3. **Start production.** Tap a suitable building and choose a batch. Check its materials and power cost before starting. Different buildings can work at the same time, including while you explore.
+4. **Collect the result.** When **Collect** appears above a building, collect its completed batch. A new batch must be started manually.
+5. **Choose how to use supplies.** Open **Orders and supplies**. Keep air, water and food for your crew, or deliver the listed goods to earn expansion credits and stars. Credits are fictional game rewards, not real money.
+6. **Develop your base.** Upgrade facilities, move or swap them between six plots, and expand the outpost when you have enough credits and buildings. You can build more than one facility of the same type.
+
+### What each facility does
+
+| Facility | Purpose in the game |
+| --- | --- |
+| Solar panel | Produces power through charging jobs. |
+| Battery | Improves power collected from solar jobs. |
+| Processor | Converts rocks into air packs or ice into water packs using power. |
+| Oxygen maker | Uses water and power to produce air packs. |
+| CO2 cleaner | Improves the cabin-air meter. |
+| Water recycler | Reclaims used water with power. |
+| Greenhouse | Uses water and power to produce food and used water. |
+| Radiation shelter | Supports radiation protection. |
+
+Production takes short game intervals, typically 5–10 seconds before upgrade bonuses. These are game timers, not real construction or processing times.
+
+### Understand the resources
+
+The top meters describe the crew's condition and reserves. Warehouse packs are separate items: collecting packs does not automatically fill the matching crew meter. Use the supply controls to replenish reserves, or save those packs for deliveries.
+
+Collecting production and returning with cargo use small amounts of crew supplies. Check reserves before repeatedly taking these actions. If power is low, charge with a solar panel. If materials are missing, explore or choose another affordable activity. Supplies do not drain simply because you leave the game closed, and there is no offline resource penalty.
+
+Tap resource explanations and the **?** help button when a symbol or next action is unclear. The **Knowledge book** collects short learning cards.
+
+### How to succeed
+
+Establish your outpost by meeting all three goals:
+
+- Reach **Outpost Level 3**.
+- Complete **6 deliveries**.
+- Produce at least **6 packaged supplies**: air, water or food.
+
+Level 2 requires 16 credits and at least two buildings. Level 3 requires another 40 credits and at least four buildings. You can choose different production routes and repeat deliveries. After reaching the milestone, choose **Keep building** or **Save and leave**.
+
+## Play Guided missions
+
+Follow the large prompt, mascot and highlighted target. The first mission introduces rock collection, a battery and lunar night. Later missions add ice, processing, food, protection and further building choices.
+
+Wrong choices reduce survival and provide an explanation. Correct choices reward progress; solving a question after an error earns a smaller reward. At zero survival, **MISSION FAILED** offers **Try again** or **Quit**. Trying again restores reserves while keeping buildings, materials and learned cards. There is no character death.
+
+| Level | Guided experience |
+| --- | --- |
+| Explorer, ages 5–7 | Two choices, no event countdown and mostly icon-based information. |
+| Engineer, ages 8–10 | Simple numbers and a slower event countdown that can be paused. |
+| Commander, ages 11–12 | More choices, units, shorter countdowns and chained events. |
+
+## Save, exit and restart
+
+Progress is saved in localStorage in the current browser. **Quit** returns to the menu; **Continue** resumes the saved game. After returning to the menu, you can close the browser tab. Starting over requires confirmation.
+
+Saves stay on that browser and device. Clearing browser storage removes them. File URLs, localhost and different ports can have separate saves. If browser storage is blocked, the game displays a warning and progress may be temporary. No player data is uploaded to a server.
+
+## NASA resources and educational scope
+
+NASA resources inform the learning content about lunar conditions, life support, water recovery, food production and radiation. See [NASA_DATA.md](NASA_DATA.md) for the references used by the current game and [CREDITS.md](CREDITS.md) for other resources and AI assistance.
+
+Rocks, meters, costs, outputs, rewards, power labels and timers are simplified game rules. They are not verified engineering specifications. Fourteen learning cards have supplied NASA references; two retain fact placeholders and hide their source button. Source wording still requires review; a NASA-domain link does not verify a claim. This is a desktop prototype; child-usability studies and mobile-specific optimization have not been completed.
+
+OxyNest is an independent student project and is not endorsed by NASA.
+
+## Run and check the code
+
+Developers can use Node.js 24 or later. No third-party npm packages are required.
 
 ```sh
 npm test
@@ -16,39 +105,13 @@ npm run build
 npm start
 ```
 
-Open the localhost address printed by the server. Browser saves are specific to their origin; opening the file directly and using localhost can show different saves.
+Open the localhost address printed by the server. Stop it with Ctrl+C. The build writes only the playable game and local fonts to dist/.
 
-## Build your settlement
+The focused suite checks content, saves, recovery, mining progression and the settlement economy. Optional desktop browser checks use an installed Microsoft Edge or Google Chrome:
 
-Gather rocks and ice, choose among eight facility types, and manage six building plots. Start production, collect finished supplies, use them for your crew or fulfil fictional supply orders. Move buildings, upgrade facilities and earn credits for expansion. Production uses short game timers and does not impose an offline resource penalty.
+```sh
+npm run test:colony
+npm run test:browser
+```
 
-Establish your outpost by reaching level three, completing six deliveries and producing at least six packaged supplies. You may keep building afterward. Resource explanations and an optional Knowledge book support learning. Guided missions retain questions and decision-based events. See [how to play](docs/KIDS_HOW_TO_PLAY.md) and [settlement rules](docs/SETTLEMENT_MODE_2026-11-13.md).
-
-## Source layout
-
-- `game/`: current integrated source, local fonts and content-checking tools.
-- `tests/`: game-state, progression, economy, publication-integrity and historical research tests.
-- `tools/`: local build/server, browser checks and research validators.
-- `data/`: the preserved initial nine-dataset research snapshot; these files are historical references and are not loaded by the current game. Current playable rules and learning text are in `game/js/`.
-- `docs/`: gameplay, source records, historical delivery notes and review limits.
-- `dist/`: ignored generated playable build.
-
-The original B delivery remains available in commit `e55dbbcdbb272dfb590db81d5eaf1924b44d2364`. `docs/GAME_SOURCE_MANIFEST.json` describes that historical delivery. `docs/CURRENT_GAME_MANIFEST.json` records the current source hashes. Later integration is explicitly a modification of B's delivery, not an unchanged original.
-
-## Validation and limitations
-
-The publication suite passes 32 Node tests, including eight economy tests. `npm run check:game` checks local text, references and font coverage; it does not verify scientific claims. Browser checks are available through `npm run test:colony` and `npm run test:browser`; see [current publication notes](docs/CURRENT_RELEASE.md) for results and scope.
-
-Fourteen learning cards contain team-supplied NASA references; two retain fact placeholders. Scientific wording and remaining placeholders require review. Costs, yields, meters, rewards and timers are simplified game rules, not validated lunar equipment performance. Real-child usability and retention have not been established. Mobile-specific optimization remains outside this release.
-
-The historical research structure check still reports an undeclared `food_days_left` metric, so `npm run check:data` exits nonzero. This historical dataset issue is separate from the current game build. The source-domain checks do not verify source content or scientific values. See `docs/DATA_REVIEW.md` and `docs/VALIDATION_STATUS.md`.
-
-## Credits and publication
-
-See [CREDITS.md](CREDITS.md) and `project-metadata.json` for tools and AI assistance. NASA resources provide educational context. OxyNest is an independent student project and is not endorsed by NASA.
-
-Research preparation was recorded on November 4, 2026; the original B Kids handoff was received November 13; public updates began November 14. Publication dates are not claims about when development began.
-
-Repository: https://github.com/Jiazhen222/OxyNest-SpaceApps
-
-No GitHub Pages deployment or final challenge submission is included. There is currently no live game URL recorded for this repository.
+Game source is in game/js/, layout in game/index.html and game/css/, and bilingual text in game/js/i18n.js. Tests and development tools are included for reproducibility. Static checks do not establish scientific accuracy or real-child usability.

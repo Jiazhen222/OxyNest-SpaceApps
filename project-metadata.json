@@ -1,36 +1,31 @@
 {
   "name": "OxyNest",
   "tagline": "Build Life Beyond Earth.",
-  "release_scope": "Current integrated Moon settlement game with optional guided missions and historical research",
-  "game_entry": "game/index.html",
-  "source_received": "2026-11-13",
-  "published": "2026-11-14",
-  "game_modified": true,
+  "description": "Educational Moon base-building game for children aged 5–12",
+  "entry": "game/index.html",
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "runtime": [
+    "HTML",
+    "CSS",
+    "JavaScript"
+  ],
   "ai_assistance": [
     {
       "tool": "Claude Code",
-      "scope": "Received B game code, including inline SVG/CSS artwork",
-      "reported_by": "Teammate B"
+      "use": "Game code and code-rendered SVG/CSS illustrations"
     },
     {
       "tool": "OpenAI Codex",
-      "scope": "Gameplay integration and modifications, validation, testing, documentation and publication preparation"
+      "use": "Gameplay integration, code changes, testing and documentation"
     },
     {
       "tool": "Google Gemini",
-      "scope": "Research discovery and organization",
-      "reported_by": "Teammate D"
+      "use": "Research discovery and organization"
     }
   ],
-  "excluded": [
-    "Local browser saves and profiles",
-    "Original ZIP archives",
-    "Presentation and video assets"
-  ],
-  "references": [
-    "CREDITS.md",
-    "docs/GAME_SOURCE_MANIFEST.json",
-    "game/docs/FACTS.md",
-    "docs/CURRENT_GAME_MANIFEST.json"
-  ]
+  "resources": "NASA_DATA.md",
+  "credits": "CREDITS.md"
 }
