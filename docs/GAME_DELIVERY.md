@@ -19,3 +19,7 @@ Open game/index.html in a desktop browser after downloading and extracting the r
 ## Scope
 
 Later gameplay, production orders, free-layout management, UI changes and integration fixes are excluded. Original statements in game/README.md are preserved as part of B's handoff; event-specific descriptions are not independently verified by this publication. See CREDITS.md for tools and assistance.
+
+## Incremental validation update
+
+Six regression checks have been added outside the preserved game source. Run npm run check:game for the received checker and these tests, or npm test for all 15 research and game checks. All pass at this update. These checks examine source contracts and assets; they are not a complete browser playthrough. No gameplay implementation files were changed in this update.

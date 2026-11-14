@@ -2,13 +2,15 @@
   "name": "oxynest-research",
   "version": "0.1.0",
   "private": true,
-  "description": "Initial OxyNest research datasets and local validation tools",
+  "description": "OxyNest research, received B game and incremental validation tools",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
     "test": "node --test tests/*.test.cjs",
     "check:data": "node tools/check-data.js && node tools/check-structure.cjs",
-    "prepare:data": "node tools/prepare-english-data.cjs"
+    "prepare:data": "node tools/prepare-english-data.cjs",
+    "test:game": "node --test tests/game-handoff.test.cjs",
+    "check:game": "node game/tools/check.js && npm run test:game"
   }
 }

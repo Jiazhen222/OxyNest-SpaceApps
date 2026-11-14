@@ -40,12 +40,13 @@ Use Node.js 24 or later. No third-party npm packages are required.
 
 ```sh
 npm test
+npm run check:game
 node tools/check-data.js
 node tools/check-structure.cjs
 npm run prepare:data
 ```
 
-The research regression suite passes **nine tests**. The parsing/source-format stage reports **9/9 JSON files** and **65/65 NASA-domain-formatted source fields**. That is URL-format checking, not source-content verification.
+The combined regression suite passes **15 tests**: nine research checks and six received-game checks. The game checks cover handoff hashes, language parameters, choice roles, age settings, reward ordering and local entry assets. These checks do not replace browser gameplay testing. The parsing/source-format stage reports **9/9 JSON files** and **65/65 NASA-domain-formatted source fields**. That is URL-format checking, not source-content verification.
 
 The supplemental structure check intentionally remains **nonzero** for an unresolved initial reference: `chain_food_starvation_collapse` uses `food_days_left` without a declared metric contract. Accordingly, `npm run check:data` exits 1. No threshold or engine alias has been invented to make this historical snapshot appear fully integrated.
 
